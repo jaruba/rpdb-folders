@@ -16,7 +16,7 @@ const browser = require('./browser')
 const tryThreeTimes = {}
 
 const nameQueue = async.queue((task, cb) => {
-	console.log('Posters left in queue: ' + nameQueue.length())
+	console.log('Folders left in queue: ' + nameQueue.length())
 
 	const posterExists = fs.existsSync(path.join(task.folder, 'poster.jpg'))
 
