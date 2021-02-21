@@ -6,7 +6,7 @@ const drivelist = extRequire('drivelist')
 const fs = require('fs')
 const path = require('path')
 
-const isDirectory = source => fs.lstatSync(source).isDirectory()
+const isDirectory = source => { try { return fs.lstatSync(source).isDirectory() } catch(e) { return false } }
 const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory)
 
 module.exports = async (folder) => {
