@@ -41,7 +41,6 @@ Recommended movie folder names (in order of priority):
 - This application requires a [RPDB API Key](https://ratingposterdb.com/api-key/)
 - it is advised to use the "refresh library metadata periodically" or any similar setting in your media center application to ensure that posters that have not been loaded in due time will be added automatically later on
 - movies and series that have less then 500 votes on IMDB will not have rating images, these items are refreshed periodically and the images will become available as soon as it passes the 500 votes threshold
-- RPDB Folders will watch folder changes and attempt to add images to these folders as soon as possible, in most cases this will be enough for the rating images to show in the application as soon as they are added, in unlikely scenario when a "race condition" occures and the media is scanned before the images have been added, it is recommended to use the "refresh metadata" option of the media center you are using in order for the changes to be correctly registered
 
 ## Screenshot
 
