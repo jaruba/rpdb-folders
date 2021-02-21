@@ -385,7 +385,7 @@
                     }
                     currentPaths = folders
                     $('.folder-list').html(currentPaths.map(function(el) {
-                        return '<div class="folder-line add-line">' + (!path ? el.path + ' (' : '') + el.label + (!path ? ')' : '') + '</div>'
+                        return '<div class="folder-line add-line">' + (el.label ? (!path ? el.path + ' (' : '') + el.label + (!path ? ')' : '') : el.path) + '</div>'
                     }))
                     attachBrowseClickListeners()
                     $('#add-media-folder').show()
@@ -397,7 +397,7 @@
                     var text = $(this).text().trim()
                     var path
                     currentPaths.some(el => {
-                        if (el.label == text || (el.path + ' (' + el.label + ')') == text) {
+                        if (el.label == text || (el.path + ' (' + el.label + ')') == text || el.path == text) {
                             path = el.path
                             return true
                         }
