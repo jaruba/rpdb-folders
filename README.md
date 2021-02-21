@@ -8,9 +8,9 @@ See screenshots of [Rating Posters in Various Apps](https://ratingposterdb.com/#
 
 ## Downloads
 
-- [Windows RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.1/win-rpdb-folders.zip)
-- [OSX RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.1/osx-rpdb-folders.zip)
-- [Linux RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.1/linux-rpdb-folders.zip)
+- [Windows RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.2/win-rpdb-folders.zip)
+- [OSX RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.2/osx-rpdb-folders.zip)
+- [Linux RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.2/linux-rpdb-folders.zip)
 
 ## Folder Naming and Usage
 
