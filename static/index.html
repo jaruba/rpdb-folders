@@ -1,0 +1,530 @@
+<html>
+    <head>
+        <title>RPDB Folders</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.5/build/pure-min.css">
+        <style>
+            body {
+                padding: 0 5%;
+            }
+            img {
+                border: none;
+                padding: none;
+            }
+            a {
+                text-decoration: none;
+                color: #0078e7;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            .full-page-dialog {
+                width: 100%;
+                height: 100%;
+                z-index: 10;
+                top: 0;
+                left: 0;
+                position: fixed;
+                overflow: scroll;
+                background-color: #fff;
+                z-index: 1000;
+            }
+            .current-folder {
+                display: inline-block;
+                padding: 15px;
+                border: 1px solid rgba(0,0,0,0.3);
+                max-width: 80%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+/*                direction: rtl; */
+                text-align: left;
+                margin-bottom: 20px;
+            }
+            .dialog-title {
+                text-align: center;
+                font-size: 20px;
+                margin: 30px 0;
+            }
+            .folder-list {
+                width: 80%;
+            }
+            .folder-list .folder-line {
+                padding: 15px;
+                border-bottom: 1px solid rgba(0,0,0,0.3);
+                width: calc(100% - 30px);
+                cursor: pointer;
+                text-align: left;
+            }
+            .folder-list .folder-line:hover {
+                background-color: rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <center>
+            <img src='rpdb-folders.jpg' style="max-width: 160px; padding-top: 10px" />
+            <div id="top-links" style="display: none">
+                <div style="padding: 5px 15px; padding-bottom: 3px">
+                    This application will add "poster.jpg" to movie / series folders using the RPDB API, it will also keep track of and add "poster.jpg" to any new folders that are created.
+                    <br/><br/>
+                    It has been tested with Plex, Emby and Kodi, but it should update the posters / backdrops for more media center applications also.
+                </div>
+                <br/><br/>
+                <a href="https://ratingposterdb.com/#see-it-in-action" target="_blank">See Screenshots</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="https://ratingposterdb.com/api-key" target="_blank">Get API Key</a>
+                <br/><br/>
+            </div>
+            <div>
+                <form class="pure-form pure-form-aligned" id="api-key-form" onsubmit="return set_api_key()" style="display: none">
+                    <fieldset>
+                        <div class="pure-control-group">
+                            <input type="text" id="api-key" placeholder="API Key" />
+                            <span class="pure-form-message-inline">
+                                &nbsp;<button type="submit" class="pure-button pure-button-primary">Load</button>
+                            </span>
+                        </div>
+                    </fieldset>
+                </form>
+                <div id="api-key-success" style="display: none; opacity: 0.7">
+                    <b id="api-key-success-msg"></b>
+                    <br/><br/>
+                    <button type="button" class="pure-button pure-button-primary" id="change-api-key">Change API Key</button>
+                    <br/><br/><br/>
+                </div>
+                <div id="api-key-error-1" style="display: none; opacity: 0.7">
+                    Error: Using an API key is mandatory.
+                    <br/><br/><br/>
+                </div>
+                <div id="api-key-error-2" style="display: none; opacity: 0.7">
+                    Error: API key is not valid, please try again.
+                    <br/><br/><br/>
+                </div>
+            </div>
+            <div id="opts-holder" style="display: none">
+                <form class="pure-form pure-form-aligned" id="adv-opts-form">
+                    <div id="adv-form">
+                        <b>Poster Type</b><br/><br/>
+                        <div id="note-tier-1" style="display: none">
+                            <i style="opacity: 0.7">Tier 1 API keys can only use the default poster type.</i>
+                            <br/><br/>
+                        </div>
+                        <label for="checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-option-one" name="optionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-option-two" name="optionsRadios" value="poster-certs" /> With Ratings + Certifications</label>
+                        <br/>
+                        <label for="checkbox-radio-option-three" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-option-three" name="optionsRadios" value="poster-rt" /> With Rotten Tomatoes + Audience Ratings</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-option-four" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-option-four" name="optionsRadios" value="poster-mc" /> With Metacritic + Audience Ratings</label>
+                        <br/><br/><br/>
+                        <b>Backdrops</b><br/><br/>
+                        <div id="note-tier-3">
+                            <i style="opacity: 0.7">Tier 3 API keys are required to download backdrops.</i>
+                            <br/><br/>
+                        </div>
+                        <label for="backdrops-option-one" class="pure-checkbox" style="display: inline-block">
+                            <input type="checkbox" id="backdrops-option-one" class="optionsCheckboxBackdrops" value="backdrops" disabled="" /> Download Backdrops</label>
+                        <br/><br/><br/>
+                        <b>Overwrite Images</b><br/><br/>
+                        <div>
+                            <i style="opacity: 0.7">Overwriting images will keep the ratings updated, but will also use more requests.</i>
+                            <br/><br/>
+                        </div>
+                        <label for="overwrite-option-one" class="pure-checkbox" style="display: inline-block">
+                            <input type="checkbox" id="overwrite-option-one" class="optionsCheckbox" value="overwrite" /> Overwrite Images</label>
+                        <br/><br/><br/>
+                        <b>Media Folders</b><br/><br/>
+                        <div>
+                            <span id="watched-folders" style="opacity: 0.7">Watching 0 movie folders and 0 series folders.</span>
+                            <br/><br/>
+                        </div>
+                        <button type="button" class="pure-button pure-button-primary" onclick="openMovieBrowser()">Add Movie Folder</button>
+                        &nbsp;&nbsp;&nbsp;
+                        <button type="button" class="pure-button pure-button-primary" onclick="openSeriesBrowser()">Add Series Folder</button>
+                        <br/><br/>
+                        <button type="button" class="pure-button" onclick="removeMediaFolder()">Remove Media Folder</button>
+                        <br/><br/><br/>
+                        <b>History</b><br/><br/>
+                        <div id="history-msg" style="opacity: 0.7">Added images to 0 folders.</div>
+                        <br/>
+                        <button type="button" class="pure-button" onclick="openFixMatch()">Fix Match</button>
+                        <br/><br/><br/>
+                        <button type="button" class="pure-button" onclick="runFullScan()">Run Full Scan</button>
+                        <br/><br/>
+                        <div id="full-scan-msg" style="opacity: 0.7">Last full scan started: never</div>
+                    </div>
+                </form>
+            </div>
+            <br/><br/>
+        </center>
+        <div id="add-media-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title" id="add-media-folder-title"></h1>
+            <div style="text-align: center">
+                <div class="current-folder"></div>
+                <br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="addFolder()">Add Folder</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="closeBrowser()">Close</button>
+                <br/><br/><br/>
+                <center>
+                    <div class="folder-list">
+                    </div>
+                </center>
+
+            </div>
+        </div>
+        <div id="remove-media-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Remove Media Folders</h1>
+            <div style="text-align: center">
+                Select a folder in order to remove it.
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closeRemoveMediaFolder()">Close</button>
+                <br/><br/><br/>
+                <center>
+                    <b>Movie Folders</b><br/><br/>
+                    <div class="remove-movie-folder-list folder-list">
+                    </div>
+                    <br/></br/>
+                    <b>Series Folders</b><br/><br/>
+                    <div class="remove-series-folder-list folder-list">
+                    </div>
+                </center>
+
+            </div>
+        </div>
+        <div id="fix-media-match" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Fix Media Match</h1>
+            <div style="text-align: center">
+                <span style="opacity: 0.7">
+                    In the unlikely event that a folder is matched wrongly, you can match the exact folder name to an IMDB ID.
+                    <br/><br/>
+                    The correct poster for the folder will then be downloaded as soon as possible.
+                    <br/><br/>
+                    (most likely under 1 min, but may take up to 1 hour if a full scan is currently in progress)
+                </span>
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closeFixMediaFolder()">Close</button>
+                <br/><br/><br/><br/>
+                <form class="pure-form pure-form-aligned" id="fix-match-form">
+                    <input type="text" id="exact-folder-name" placeholder="Exact folder name" />
+                    <br/><br/>
+                    <input type="text" id="imdb-url" placeholder="IMDB URL or IMDB ID" />
+                    <br/><br/><br/>
+                    <label for="fix-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="fix-checkbox-radio-option-one" name="fixOptionsRadios" value="movie" checked="" /> Movie</label>
+                    &nbsp;&nbsp;
+                    <label for="fix-checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="fix-checkbox-radio-option-two" name="fixOptionsRadios" value="series" /> Series</label>
+                </form>
+                <br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="addFixMatch()">Add Match</button>
+                <br/><br/><br/>
+                <div class="fix-error-message" style="display: none; color: red"></div>
+                <br/><br/>
+            </div>
+        </div>
+        <script>
+            var apiKey
+            function load_api_key(skipValidation) {
+                if ($('#api-key-error-1').is(':visible'))
+                    $('#api-key-error-1').hide()
+                if ($('#api-key-error-2').is(':visible'))
+                    $('#api-key-error-2').hide()
+                if (!apiKey) {
+                    $('#api-key-error-1').show()
+                    return
+                }
+                function validatedKey() {
+                    var tier = 1
+                    if (apiKey.startsWith('t2-'))
+                        tier = 2
+                    else if (apiKey.startsWith('t3-'))
+                        tier = 3
+                    else if (apiKey.startsWith('t4-'))
+                        tier = 4
+                    $('#top-links').hide()
+                    $('#api-key-form').hide()
+                    $('#api-key-success-msg').text('Successfully loaded Tier ' + tier + ' API Key!')
+                    $('#api-key-success').show()
+                    var shouldUpdate = false
+                    if (tier == 1) {
+                        $('#note-tier-1').show()
+                        if (!$('#checkbox-radio-option-one').is(':checked')) {
+                            $('#checkbox-radio-option-one').prop('checked', true)
+                            shouldUpdate = true
+                        }
+                        $('#checkbox-radio-option-two').prop('disabled', true)
+                        $('#checkbox-radio-option-three').prop('disabled', true)
+                        $('#checkbox-radio-option-four').prop('disabled', true)
+                    } else {
+                        $('#checkbox-radio-option-two').prop('disabled', false)
+                        $('#checkbox-radio-option-three').prop('disabled', false)
+                        $('#checkbox-radio-option-four').prop('disabled', false)
+                    }
+                    if (tier == 3) {
+                        $('#note-tier-3').hide()
+                        $('#backdrops-option-one').prop('disabled', false)
+                    } else {
+                        if ($('#backdrops-option-one').is(':checked')) {
+                            $('#backdrops-option-one').prop('checked', false)
+                            shouldUpdate = true
+                        }
+                        $('#note-tier-3').show()
+                        $('#backdrops-option-one').prop('disabled', true)
+                    }
+                    if (shouldUpdate)
+                        setTimeout(() => { updateSettings() })
+                    $('#opts-holder').show()
+                }
+                if (skipValidation) {
+                    validatedKey()
+                } else {
+                    $.get('https://api.ratingposterdb.com/' + apiKey + '/isValid', function(data) {
+                        if ((data || {}).valid) {
+                            $.get('/setApiKey?key=' + apiKey, function(data) { })
+                            validatedKey()
+                        } else {
+                            $('#api-key').val('')
+                            $('#api-key-error-2').show()
+                        }
+                    }).fail(function() {
+                        $('#api-key').val('')
+                        $('#api-key-error-2').show()
+                    });
+                }
+            }
+            function updateSettings() {
+                var posterType = $('input[name=optionsRadios]:checked', '#adv-opts-form').val();
+                var overwrite = 0;
+                if ($("#overwrite-option-one").is(':checked')) {
+                  overwrite = 1;
+                }
+                var backdrops = 0
+                if ($("#backdrops-option-one").is(':checked')) {
+                  backdrops = 1;
+                }
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops, function(data) {});
+            }
+            function set_api_key() {
+                apiKey = $('#api-key').val()
+                load_api_key()
+                return false
+            }
+            $(document).ready(function() {
+                $.get('/getSettings', function(data) {
+                    if ((data || {}).success) {
+                        // load saved data
+                        if (data.overwrite) {
+                            $("#overwrite-option-one").prop('checked', true)
+                        }
+                        if (data.backdrops) {
+                            $("#backdrops-option-one").prop('checked', true)
+                        }
+                        if (data.posterType) {
+                            $('input[name=optionsRadios]', '#adv-opts-form').each((ij,el)=> {
+                                if ($(el).val() == data.posterType) {
+                                    $(el).prop('checked', true)
+                                } else {
+                                    $(el).prop('checked', false)
+                                }
+                            })
+                        }
+                        $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
+                        $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
+                        if (data.apiKeyPrefix) {
+                            apiKey = data.apiKeyPrefix
+                            load_api_key(true)
+                        } else {
+                            $('#top-links').show()
+                            $('#api-key-form').show()
+                        }
+                    }
+                });
+                $('#adv-opts-form input').on('change', function() {
+                    updateSettings();
+                });
+                $("#overwrite-option-one").on('change', function() {
+                    updateSettings();
+                });
+                $("#backdrops-option-one").on('change', function() {
+                    updateSettings();
+                });
+                $("#change-api-key").click(function(e) {
+                    e.preventDefault()
+                    $('#api-key').val('')
+                    $('#opts-holder').hide()
+                    $('#api-key-success').hide()
+                    $('#note-tier-1').hide()
+                    $('#top-links').show()
+                    $('#api-key-form').show()
+                });
+                setInterval(pollData, 2000)
+            });
+            function sep(path) {
+                return path.includes('/') ? '/' : '\\'
+            }
+            var prevPath = ''
+            var currentPaths = []
+            function handleBrowser(path, data) {
+                if ((data || {}).success) {
+                    if (!path)
+                        $('.current-folder').html('<span style="opacity: 0.5">None</span>')
+                    else
+                        $('.current-folder').text(path)
+                    var folders = data.folders || []
+                    if (path) {
+                        var separator = sep(path)
+                        var pathParts = path.split(separator)
+                        pathParts.pop()
+                        prevPath = pathParts.join(separator)
+                        folders.unshift({ path: prevPath, label: '..' })
+                    }
+                    currentPaths = folders
+                    $('.folder-list').html(currentPaths.map(function(el) {
+                        return '<div class="folder-line add-line">' + (!path ? el.path + ' (' : '') + el.label + (!path ? ')' : '') + '</div>'
+                    }))
+                    attachBrowseClickListeners()
+                    $('#add-media-folder').show()
+                }
+            }
+            function attachBrowseClickListeners() {
+                $(".add-line").click(function(e) {
+                    e.preventDefault()
+                    var text = $(this).text().trim()
+                    var path
+                    currentPaths.some(el => {
+                        if (el.label == text || (el.path + ' (' + el.label + ')') == text) {
+                            path = el.path
+                            return true
+                        }
+                    })
+                    $.get('/browse?folder=' + encodeURIComponent(path), handleBrowser.bind(null, path))
+                })
+            }
+            var browseMediaType = 'movie'
+            function openMovieBrowser() {
+                browseMediaType = 'movie'
+                $('#add-media-folder-title').text('Add Movie Media Folder')
+                $.get('/browse', handleBrowser.bind(null, null))
+            }
+            function updatePage() {
+                $.get('/getSettings', function(data) {
+                    if ((data || {}).success) {
+                        $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
+                        $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
+                    }
+                })
+            }
+            function addFolder() {
+                var currentFolder = $('.current-folder').text().trim()
+                function handleAddFolderResponse() {
+                    updatePage()
+                    setTimeout(() => {
+                        $('#add-media-folder').hide()
+                    })
+                }
+                if (currentFolder != 'None') {
+                    if (browseMediaType == 'movie') {
+                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder), handleAddFolderResponse)
+                    } else {
+                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder), handleAddFolderResponse)
+                    }
+                } else {
+                    $('#add-media-folder').hide()
+                }
+            }
+            function openSeriesBrowser() {
+                browseMediaType = 'series'
+                $('#add-media-folder-title').text('Add Series Media Folder')
+                $.get('/browse', handleBrowser.bind(null, null))
+            }
+            function closeBrowser() {
+                $('#add-media-folder').hide()
+            }
+            function attachRemoveFolderClickListeners() {
+                $(".remove-line").click(function(e) {
+                    e.preventDefault()
+                    function handleRemoveFolderResponse(data) {
+                        if ((data || {}).success) {
+                            removeMediaFolder()
+                        }
+                    }
+                    var text = $(this).text().trim()
+                    if ($(this).hasClass('movie-line')) {
+                        $.get('/removeMovieFolder?folder=' + encodeURIComponent(text), handleRemoveFolderResponse)
+                    } else {
+                        $.get('/removeSeriesFolder?folder=' + encodeURIComponent(text), handleRemoveFolderResponse)
+                    }
+                })
+            }
+            function removeMediaFolder() {
+                $.get('/getSettings', function(data) {
+                    if ((data || {}).success) {
+                        if ((data.movieFolders || []).length) {
+                            $('.remove-movie-folder-list').html(data.movieFolders.map((el, ij) => {
+                                return '<div class="folder-line remove-line movie-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
+                            }))
+                        } else {
+                            $('.remove-movie-folder-list').html('<span style="opacity: 0.5">None Added</span>')
+                        }
+                        if ((data.seriesFolders || []).length) {
+                            $('.remove-series-folder-list').html(data.seriesFolders.map((el, ij) => {
+                                return '<div class="folder-line remove-line series-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
+                            }))
+                        } else {
+                            $('.remove-series-folder-list').html('<span style="opacity: 0.5">None Added</span>')
+                        }
+                        $('#remove-media-folder').show()
+                        attachRemoveFolderClickListeners()
+                    }
+                })
+            }
+            function closeRemoveMediaFolder() {
+                updatePage()
+                $('#remove-media-folder').hide()
+            }
+            function openFixMatch() {
+                $('#fix-media-match').show()
+            }
+            function closeFixMediaFolder() {
+                $('.fix-error-message').hide()
+                $('#fix-media-match').hide()
+            }
+            function addFixMatch() {
+                var folder = $('#exact-folder-name').val()
+                var imdbUrl = $('#imdb-url').val()
+                var folderType = $('input[name=fixOptionsRadios]:checked', '#fix-match-form').val()
+                $.get('/addFixMatch?folder=' + encodeURIComponent(folder) + '&imdb=' + encodeURIComponent(imdbUrl) + '&type=' + folderType, function(data) {
+                    if ((data || {}).success) {
+                        closeFixMediaFolder()
+                        $('#exact-folder-name').val('')
+                        $('#imdb-url').val('')
+                        $("#fix-checkbox-radio-option-one").prop('checked', true)
+                    } else if ((data || {}).message) {
+                        $('.fix-error-message').text(data.message)
+                        $('.fix-error-message').show()
+                    } else {
+                        $('.fix-error-message').text('Unknown error occurred')
+                        $('.fix-error-message').show()
+                    }
+                })
+            }
+            function runFullScan() {
+                $.get('/runFullScan', function(data) {});
+            }
+            function pollData() {
+                $.get('/pollData', function(data) {
+                    if ((data || {}).success) {
+                        $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
+                        var dt = new Date(parseInt(data.lastFullUpdate))
+                        $('#full-scan-msg').html('Last full scan started:<br/><br/>' + dt.toLocaleString())
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

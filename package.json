@@ -1,0 +1,25 @@
+{
+  "name": "rpdb-folders",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "name-to-imdb": "3.0.2",
+    "async": "^3.2.0",
+    "needle": "2.6.0",
+    "chokidar": "3.5.1",
+    "jsonfile": "https://github.com/jaruba/node-jsonfile/tarball/master",
+    "appdirectory": "0.1.0",
+    "drivelist": "9.2.4",
+    "torrent-name-parser": "https://github.com/jaruba/torrent-name-parser/tarball/master",
+    "get-port": "5.1.1",
+    "open": "7.4.0"
+  },
+  "bin": "index.js",
+  "devDependencies": {
+    "rimraf": "^2.6.3",
+    "ncp": "^2.0.0",
+    "pkg": "^4.3.7"
+  }
+}
