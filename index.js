@@ -92,8 +92,8 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/backdrop-default/' + imdbId + '.jpg'
-		needle.get(posterUrl, (err, res) => {
+		const backdropUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/backdrop-default/' + imdbId + '.jpg'
+		needle.get(backdropUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(task.folder, 'background.jpg'), res.raw, (err) => {
 					if (err) {
