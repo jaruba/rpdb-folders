@@ -169,7 +169,7 @@ const nameQueue = async.queue((task, cb) => {
 			settings.imdbCache[task.type][task.name] = res
 			getPoster(res)
 			if (settings.backdrops)
-				getBackdrop(imdbId)
+				getBackdrop(res)
 		} else {
 			endIt()
 			if (settings.backdrops) // end again
