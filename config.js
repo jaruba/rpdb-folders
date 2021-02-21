@@ -7,6 +7,9 @@ const dirs = new AppDirectory('RPDB-Folders')
 
 const userConfigFolder = dirs.userConfig()
 
+if (!fs.existsSync(path.join(userConfigFolder, '..')))
+	fs.mkdirSync(path.join(userConfigFolder, '..'))
+
 if (!fs.existsSync(userConfigFolder))
 	fs.mkdirSync(userConfigFolder)
 
