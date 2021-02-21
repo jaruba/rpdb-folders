@@ -4,6 +4,8 @@ Monitors Media Folders and Adds Images with Ratings (poster.jpg / background.jpg
 
 This is a cross-platform solution to adding Images with Ratings for Plex / Emby / Kodi / other media centers.
 
+See screenshots of [Rating Posters in Various Apps](https://ratingposterdb.com/#see-it-in-action) and [Examples of Various Supported Rating Posters](https://ratingposterdb.com/examples/).
+
 ## Downloads
 
 - [Windows RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.1/win-rpdb-folders.zip)
