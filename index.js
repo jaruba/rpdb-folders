@@ -172,6 +172,9 @@ const nameQueue = async.queue((task, cb) => {
 				getBackdrop(imdbId)
 		} else
 			endIt()
+			if (settings.backdrops) // end again
+				endIt()
+
 	})
 }, 1)
 
