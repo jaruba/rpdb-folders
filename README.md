@@ -12,6 +12,8 @@ See screenshots of [Rating Posters in Various Apps](https://ratingposterdb.com/#
 - [OSX RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.2/osx-rpdb-folders.zip)
 - [Linux RPDB Folders](https://github.com/jaruba/rpdb-folders/releases/download/v0.0.2/linux-rpdb-folders.zip)
 
+Note: If (for any reason) the settings web page does not open by itself after running the application, then open `http://127.0.0.1:8750/` in your browser.
+
 ## Folder Naming and Usage
 
 ### Media Folders
