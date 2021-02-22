@@ -14,6 +14,10 @@ See screenshots of [Rating Posters in Various Apps](https://ratingposterdb.com/#
 
 Note: If (for any reason) the settings web page does not open by itself after running the application, then open `http://127.0.0.1:8750/` in your browser.
 
+## Setup in Media Center
+
+This application will work by default with most media center applications, it is although advised that for Plex (only) you ensure that you have the "Use local assets" setting enabled for your libraries. To do this, go to Account > Libraries (under "Manage") > Click the Gear Icon on the Right Side of your Movies / Series Libraries > Advanced > Use local assets.
+
 ## Folder Naming and Usage
 
 ### Media Folders
