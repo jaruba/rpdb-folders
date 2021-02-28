@@ -11,6 +11,9 @@ const getDirectories = source => fs.readdirSync(source).map(name => path.join(so
 
 module.exports = async (folder) => {
 
+	if (!folder && process.env['isdocker'])
+		folder = '/drives'
+
 	if (!folder) {
 		const drives = await drivelist.list()
 
