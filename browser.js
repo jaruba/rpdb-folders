@@ -3,6 +3,8 @@ const extRequire = require('./externalRequire')
 
 const drivelist = extRequire('drivelist')
 
+const isDocker = require('is-docker')
+
 const fs = require('fs')
 const path = require('path')
 
@@ -11,7 +13,7 @@ const getDirectories = source => fs.readdirSync(source).map(name => path.join(so
 
 module.exports = async (folder) => {
 
-	if (!folder && process.env['isdocker'])
+	if (!folder && isDocker())
 		folder = '/drives'
 
 	if (!folder) {
