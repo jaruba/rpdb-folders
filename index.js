@@ -5,6 +5,7 @@ const nameToImdb = require('name-to-imdb')
 const needle = require('needle')
 const async = require('async')
 const chokidar = require('chokidar')
+const isDocker = require('is-docker')
 const fs = require('fs')
 const path = require('path')
 const tnp = require('torrent-name-parser')
@@ -201,6 +202,7 @@ const watcher = chokidar.watch('dir', {
   ignored: /(^|[\/\\])\../, // ignore dotfiles
   persistent: true,
   depth: 0,
+  usePolling: isDocker(),
 })
 
 watcher.on('addDir', el => {
