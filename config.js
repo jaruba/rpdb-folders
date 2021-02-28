@@ -15,6 +15,8 @@ if (!fs.existsSync(userConfigFolder))
 
 const configPath = path.join(userConfigFolder, 'config.json')
 
+console.log(configPath)
+
 const jsonfile = require('jsonfile')
 
 // default values:
