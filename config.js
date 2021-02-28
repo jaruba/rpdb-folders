@@ -7,7 +7,7 @@ const isDocker = require('is-docker')
 
 const dirs = new AppDirectory('RPDB-Folders')
 
-const userConfigFolder = isDocker() ? '/rpdb-config' : dirs.userConfig()
+const userConfigFolder = isDocker() ? '/rpdb/config' : dirs.userConfig()
 
 if (!fs.existsSync(path.join(userConfigFolder, '..')))
 	fs.mkdirSync(path.join(userConfigFolder, '..'))

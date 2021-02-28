@@ -14,7 +14,7 @@ const getDirectories = source => fs.readdirSync(source).map(name => path.join(so
 module.exports = async (folder) => {
 
 	if (!folder && isDocker())
-		folder = '/drives'
+		folder = '/rpdb/drives'
 
 	if (!folder) {
 		const drives = await drivelist.list()
