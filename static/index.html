@@ -105,6 +105,10 @@
                 <form class="pure-form pure-form-aligned" id="adv-opts-form">
                     <div id="adv-form">
                         <b>Poster Type</b><br/><br/>
+                        <div id="note-tier-0" style="display: none">
+                            <i style="opacity: 0.7">Tier 0 API keys can only use the default poster type.</i>
+                            <br/><br/>
+                        </div>
                         <div id="note-tier-1" style="display: none">
                             <i style="opacity: 0.7">Tier 1 API keys can only use the default poster type.</i>
                             <br/><br/>
@@ -246,13 +250,20 @@
                         tier = 3
                     else if (apiKey.startsWith('t4-'))
                         tier = 4
+                    else if (apiKey.startsWith('t0-')) // trial key
+                        tier = 0
                     $('#top-links').hide()
                     $('#api-key-form').hide()
                     $('#api-key-success-msg').text('Successfully loaded Tier ' + tier + ' API Key!')
                     $('#api-key-success').show()
                     var shouldUpdate = false
+                    if (tier == 0) {
+                        $('#note-tier-0').show()
+                    }
                     if (tier == 1) {
                         $('#note-tier-1').show()
+                    }
+                    if (tier == 1 || tier == 0) {
                         if (!$('#checkbox-radio-option-one').is(':checked')) {
                             $('#checkbox-radio-option-one').prop('checked', true)
                             shouldUpdate = true
