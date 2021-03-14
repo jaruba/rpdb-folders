@@ -19,7 +19,8 @@
     "torrent-name-parser": "https://github.com/jaruba/torrent-name-parser/tarball/master",
     "get-port": "5.1.1",
     "open": "7.4.0",
-    "is-docker": "2.1.1"
+    "is-docker": "2.1.1",
+    "windows-network-drive": "3.0.1"
   },
   "bin": "index.js",
   "devDependencies": {

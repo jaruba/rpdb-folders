@@ -11,6 +11,8 @@ const path = require('path')
 const isDirectory = source => { try { return fs.lstatSync(source).isDirectory() } catch(e) { return false } }
 const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory)
 
+const winNetDrive = require('windows-network-drive')
+
 module.exports = async (folder) => {
 
 	if (!folder && isDocker())
@@ -32,6 +34,17 @@ module.exports = async (folder) => {
 							mountpoints.push(mount)
 					})
 			})
+
+			let networkDrives
+
+			if (winNetDrive.isWinOs())
+				try {
+					const netDrivesList = await winNetDrive.list()
+					networkDrives = Object.keys(netDrivesList || {}).map(el => { return { path: el + ':\\' } })
+				} catch(e) {}
+
+			mountpoints = mountpoints.concat(networkDrives || [])
+
 			return mountpoints
 		} else {
 			return []
