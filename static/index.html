@@ -127,7 +127,7 @@
                         <br/><br/><br/>
                         <b>Backdrops</b><br/><br/>
                         <div id="note-tier-3">
-                            <i style="opacity: 0.7">Tier 3 API keys are required to download backdrops.</i>
+                            <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to download backdrops.</i>
                             <br/><br/>
                         </div>
                         <label for="backdrops-option-one" class="pure-checkbox" style="display: inline-block">
@@ -250,6 +250,8 @@
                         tier = 3
                     else if (apiKey.startsWith('t4-'))
                         tier = 4
+                    else if (apiKey.startsWith('t5-'))
+                        tier = 5
                     else if (apiKey.startsWith('t0-')) // trial key
                         tier = 0
                     $('#top-links').hide()
@@ -276,7 +278,7 @@
                         $('#checkbox-radio-option-three').prop('disabled', false)
                         $('#checkbox-radio-option-four').prop('disabled', false)
                     }
-                    if (tier == 3) {
+                    if (tier == 3 || tier == 4 || tier == 5) {
                         $('#note-tier-3').hide()
                         $('#backdrops-option-one').prop('disabled', false)
                     } else {
