@@ -16,7 +16,15 @@ const browser = require('./browser')
 
 const tryThreeTimes = {}
 
+let queueDisabled = false
+
 const nameQueue = async.queue((task, cb) => {
+
+	if (queueDisabled) {
+		cb()
+		return
+	}
+
 	console.log('Folders left in queue: ' + nameQueue.length())
 
 	const posterExists = fs.existsSync(path.join(task.folder, 'poster.jpg'))
@@ -83,6 +91,14 @@ const nameQueue = async.queue((task, cb) => {
 					endIt()
 				})
 			} else {
+				if (res.statusCode == 403) {
+					// we will purge the queue, this can only happen if:
+					// - API request limit is reached
+					// - requests are done for an unsupported poster type
+					// - API key is invalid / disabled
+					console.log(res.body)
+					queueDisabled = true
+				}
 				endIt()
 			}
 		})
@@ -186,6 +202,7 @@ const nameQueue = async.queue((task, cb) => {
 nameQueue.drain(() => {
 	config.set('imdbCache', settings.imdbCache)
 	fullScanRunning = false
+	queueDisabled = false
 })
 
 const isDirectory = source => fs.lstatSync(source).isDirectory()
