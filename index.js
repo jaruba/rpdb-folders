@@ -149,8 +149,12 @@ const nameQueue = async.queue((task, cb) => {
 
 			if (tnpParsed.title) {
 				obj.name = tnpParsed.title
-				if (tnpParsed.year)
+				if (tnpParsed.year) {
 					obj.year = tnpParsed.year
+				} else if (obj.type == 'series' && task.name.includes(' ')) {
+					// this is leads to a better match for series
+					obj.name = task.name
+				}
 			}
 
 		}
