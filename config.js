@@ -22,18 +22,18 @@ const jsonfile = require('jsonfile')
 // default values:
 
 let map = {
-	port: 8750,
-	checkFullUpdate: 1 * 60 * 60 * 1000, // 1h
-	fullUpdate: 7 * 24 * 60 * 60 * 1000, // 7d
-	overwrite: false,
+    port: 8750,
+    checkFullUpdate: 1 * 60 * 60 * 1000, // 1h
+    fullUpdate: 7 * 24 * 60 * 60 * 1000, // 7d
+    overwrite: false,
     minOverwritePeriod: 30 * 24 * 60 * 60 * 1000, // 30d
     lastOverwrite: { movie: 0, series: 0 },
-	overwriteMatches: { movie: {}, series: {} },
-	imdbCache: { movie: {}, series: {} },
-	mediaFolders: { movie: [], series: [] },
-	lastFullUpdate: { movie: 0, series: 0 },
-	apiKey: '',
-	posterType: 'poster-default',
+    overwriteMatches: { movie: {}, series: {} },
+    imdbCache: { movie: {}, series: {} },
+    mediaFolders: { movie: [], series: [] },
+    lastFullUpdate: { movie: 0, series: 0 },
+    apiKey: '',
+    posterType: 'poster-default',
     backdrops: false,
 }
 
