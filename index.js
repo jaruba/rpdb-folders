@@ -227,15 +227,33 @@ watcher.on('addDir', el => {
 	nameQueue.push({ name, folder: el, type, forced: false }) 
 })
 
+function shouldOverwrite(type) {
+	// this logic is put in place so users do not
+	// consume too many requests by overwriting
+	// posters with full scans
+	if (!!settings.overwrite && settings.lastOverwrite[type] < Date.now() - settings.minOverwritePeriod)
+		return true
+
+	return false
+}
+
 function fullUpdate() {
+	let anyOverwrite = false
 	for (const [type, folders] of Object.entries(settings.mediaFolders)) {
 		if (settings.lastFullUpdate[type] < Date.now() - settings.fullUpdate) {
 			console.log(`Initiating periodic update of all ${type} folders`)
 			settings.lastFullUpdate[type] = Date.now()
-			startFetchingPosters(folders, type, !!settings.overwrite)
+			const overwrite = shouldOverwrite(type)
+			if (overwrite) {
+				anyOverwrite = true
+				settings.lastOverwrite[type] = Date.now()
+			}
+			startFetchingPosters(folders, type, overwrite)
 		}
 	}
 	config.set('lastFullUpdate', settings.lastFullUpdate)
+	if (anyOverwrite)
+		config.set('lastOverwrite', settings.lastOverwrite)
 	setTimeout(() => { fullUpdate() }, settings.checkFullUpdate)
 }
 
@@ -322,6 +340,11 @@ app.get('/setSettings', (req, res) => {
 	settings.posterType = posterType
 	config.set('posterType', settings.posterType)
 	const overwrite = (req.query || {}).overwrite || false
+	if (overwrite == 1 && !settings.overwrite) {
+		// this is here to ensure we don't consume too many requests needlessly
+		settings.lastOverwrite = { movie: Date.now(), series: Date.now() }
+		config.set('lastOverwrite', settings.lastOverwrite)
+	}
 	settings.overwrite = overwrite == 1 ? true : false
 	config.set('overwrite', settings.overwrite)
 	const backdrops = (req.query || {}).backdrops || false
@@ -471,12 +494,20 @@ app.get('/runFullScan', (req, res) => {
 		noSpamScan = false
 	}, 5000)
 	if (!fullScanRunning) {
+		let anyOverwrite = false
 		for (const [type, folders] of Object.entries(settings.mediaFolders)) {
 			console.log(`Full scan forced to start for ${type} folders`)
 			settings.lastFullUpdate[type] = Date.now()
-			startFetchingPosters(folders, type, !!settings.overwrite)
+			const overwrite = shouldOverwrite(type)
+			if (overwrite) {
+				anyOverwrite = true
+				settings.lastOverwrite[type] = Date.now()
+			}
+			startFetchingPosters(folders, type, overwrite)
 		}
 		config.set('lastFullUpdate', settings.lastFullUpdate)
+		if (anyOverwrite)
+			config.set('lastOverwrite', settings.lastOverwrite)
 		res.send({ success: true })
 		return
 	}
