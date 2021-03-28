@@ -545,6 +545,44 @@ app.get('/pollData', (req, res) => {
 	})
 })
 
+const semver = require('semver')
+
+const pkgVersion = require('./package.json').version
+
+app.get('/needsUpdate', (req, res) => {
+
+	res.setHeader('Content-Type', 'application/json')
+
+	const files = new Array()
+	const platform = process.platform == 'win32' ? 'win' : process.platform == 'darwin' ? 'osx' : process.platform
+	files.push(platform + '-rpdb-folders-' + process.arch + '.zip')
+	files.push(platform + '-rpdb-folders.zip')
+	needle.get('https://api.github.com/repos/jaruba/rpdb-folders/releases', (err, resp, body) => {
+		if (body && Array.isArray(body) && body.length) {
+			const tag = body[0].tag_name
+			if (semver.compare(pkgVersion, tag) === -1) {
+				// update required
+				let zipBall
+				(body[0].assets || []).some(el => {
+					if (files.indexOf(el.name) > -1) {
+						zipBall = el.browser_download_url
+						return true
+					}
+				})
+				if (zipBall) {
+					res.send({ needsUpdate: true, zipBall })
+					return
+				}
+			}
+		} else {
+// we will hide the update check error for now
+//			if (err)
+//				console.error(err)
+		}
+		res.send({ needsUpdate: false })
+	})
+})
+
 let staticPath = path.join(path.dirname(process.execPath), 'static')
 
 if (!fs.existsSync(staticPath))

@@ -102,6 +102,7 @@
                 </div>
             </div>
             <div id="opts-holder" style="display: none">
+                <div id="update-check" style="display: none; border: 1px solid rgba(0,0,0,0.3); padding: 20px; margin-bottom: 35px; font-weight: bold"></div>
                 <form class="pure-form pure-form-aligned" id="adv-opts-form">
                     <div id="adv-form">
                         <b>Poster Type</b><br/><br/>
@@ -232,6 +233,19 @@
             </div>
         </div>
         <script>
+            var needsUpdate = false
+            function checkUpdate() {
+                if (needsUpdate)
+                    return
+                $.get('/needsUpdate', function(data) {
+                    if ((data || {}).zipBall) {
+                        needsUpdate = true
+                        $('#update-check').html('A new update is available, <a target="_blank" href="' + data.zipBall + '" style="color: #0078e7; text-decoration: none">download it here</a>!')
+                        $('#update-check').css('display', 'inline-block')
+                    }
+                })
+                setTimeout(checkUpdate, 24 * 60 * 60 * 1000) // check daily
+            }
             var apiKey
             function load_api_key(skipValidation) {
                 if ($('#api-key-error-1').is(':visible'))
@@ -328,6 +342,7 @@
                 return false
             }
             $(document).ready(function() {
+                checkUpdate()
                 $.get('/getSettings', function(data) {
                     if ((data || {}).success) {
                         // load saved data
