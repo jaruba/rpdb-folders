@@ -557,10 +557,17 @@ app.get('/needsUpdate', (req, res) => {
 	const platform = process.platform == 'win32' ? 'win' : process.platform == 'darwin' ? 'osx' : process.platform
 	files.push(platform + '-rpdb-folders-' + process.arch + '.zip')
 	files.push(platform + '-rpdb-folders.zip')
+
+	let updateRequired = false
+
 	needle.get('https://api.github.com/repos/jaruba/rpdb-folders/releases', (err, resp, body) => {
 		if (body && Array.isArray(body) && body.length) {
 			const tag = body[0].tag_name
 			if (semver.compare(pkgVersion, tag) === -1) {
+				updateRequired = true
+				if (isDocker()) {
+					return
+				}
 				// update required
 				let zipBall
 				(body[0].assets || []).some(el => {
@@ -569,9 +576,14 @@ app.get('/needsUpdate', (req, res) => {
 						return true
 					}
 				})
-				if (zipBall) {
-					res.send({ needsUpdate: true, zipBall })
-					return
+				if (updateRequired) {
+					if (isDocker()) {
+						res.send({ needsUpdate: true, dockerUpdate: true })
+						return
+					} else if (zipBall) {
+						res.send({ needsUpdate: true, zipBall })
+						return
+					}
 				}
 			}
 		} else {

@@ -238,9 +238,13 @@
                 if (needsUpdate)
                     return
                 $.get('/needsUpdate', function(data) {
-                    if ((data || {}).zipBall) {
+                    if ((data || {}).needsUpdate) {
                         needsUpdate = true
-                        $('#update-check').html('A new update is available, <a target="_blank" href="' + data.zipBall + '" style="color: #0078e7; text-decoration: none">download it here</a>!')
+                        if (data.dockerUpdate) {
+                            $('#update-check').html('A new update is available, please update your <a target="_blank" href="https://hub.docker.com/r/jaruba/rpdb-folders-docker" style="color: #0078e7; text-decoration: none">docker image</a>.')
+                        } else {
+                            $('#update-check').html('A new update is available, <a target="_blank" href="' + data.zipBall + '" style="color: #0078e7; text-decoration: none">download it here</a>!')
+                        }
                         $('#update-check').css('display', 'inline-block')
                     }
                 })
