@@ -26,7 +26,7 @@ let map = {
     checkFullUpdate: 1 * 60 * 60 * 1000, // 1h
     fullUpdate: 7 * 24 * 60 * 60 * 1000, // 7d
     overwrite: false,
-    minOverwritePeriod: 30 * 24 * 60 * 60 * 1000, // 30d
+    minOverwritePeriod: 29 * 24 * 60 * 60 * 1000, // 29d
     lastOverwrite: { movie: 0, series: 0 },
     overwriteMatches: { movie: {}, series: {} },
     imdbCache: { movie: {}, series: {} },
