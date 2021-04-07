@@ -13,6 +13,7 @@ const open = require('open')
 const getPort = require('get-port')
 const config = require('./config')
 const browser = require('./browser')
+const searchStrings = require('./searchStrings')
 
 const tryThreeTimes = {}
 
@@ -600,6 +601,21 @@ app.get('/needsUpdate', (req, res) => {
 		}
 		res.send({ needsUpdate: false })
 	})
+})
+
+app.get('/searchStrings', async (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaType = req.query.type
+	if (!mediaType || !(settings.mediaFolders[mediaType] || []).length) {
+		internalError()
+		return
+	}
+	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType])
+	res.setHeader('Content-Type', 'text/plain')
+	res.send(searchStringsResp)	
 })
 
 let staticPath = path.join(path.dirname(process.execPath), 'static')
