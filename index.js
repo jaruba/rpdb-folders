@@ -76,7 +76,7 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + settings.posterType + '/' + imdbId + '.jpg'
+		const posterUrl = settings.customPosters[imdbId] || ('https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + settings.posterType + '/' + imdbId + '.jpg')
 		needle.get(posterUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(task.folder, 'poster.jpg'), res.raw, (err) => {

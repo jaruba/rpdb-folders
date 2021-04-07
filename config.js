@@ -35,6 +35,7 @@ let map = {
     apiKey: '',
     posterType: 'poster-default',
     backdrops: false,
+    customPosters: {},
 }
 
 function loadUserConfig(err, obj) {
