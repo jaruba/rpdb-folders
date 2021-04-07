@@ -18,6 +18,13 @@ const tryThreeTimes = {}
 
 let queueDisabled = false
 
+const specialSpaces = ['.','-','_']
+
+function shouldNotParseName(folderName) {
+	folderName = folderName || ''
+	return !!(folderName.includes(' ') || !specialSpaces.some(el => { return folderName.includes(el) }))
+}
+
 const nameQueue = async.queue((task, cb) => {
 
 	if (queueDisabled) {
@@ -167,7 +174,7 @@ const nameQueue = async.queue((task, cb) => {
 				obj.name = tnpParsed.title
 				if (tnpParsed.year) {
 					obj.year = tnpParsed.year
-				} else if (obj.type == 'series' && task.name.includes(' ')) {
+				} else if (obj.type == 'series' && shouldNotParseName(task.name)) {
 					// this is leads to a better match for series
 					obj.name = task.name
 				}
