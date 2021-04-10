@@ -21,7 +21,8 @@
     "open": "7.4.0",
     "is-docker": "2.1.1",
     "windows-network-drive": "3.0.1",
-    "semver": "7.3.5"
+    "semver": "7.3.5",
+    "iso-639-1": "2.1.9"
   },
   "bin": "index.js",
   "devDependencies": {

@@ -36,6 +36,7 @@ let map = {
     posterType: 'poster-default',
     backdrops: false,
     customPosters: {},
+    textless: false,
 }
 
 function loadUserConfig(err, obj) {

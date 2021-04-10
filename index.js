@@ -26,6 +26,86 @@ function shouldNotParseName(folderName) {
 	return !!(folderName.includes(' ') || !specialSpaces.some(el => { return folderName.includes(el) }))
 }
 
+function folderNameToImdb(folderName, folderType, cb) {
+
+	folderName = folderName || ''
+
+	if (settings.overwriteMatches[folderType][folderName]) {
+		cb(settings.overwriteMatches[folderType][folderName])
+		return
+	}
+	if (settings.imdbCache[folderType][folderName]) {
+		cb(settings.imdbCache[folderType][folderName])
+		return
+	}
+
+	const obj = { type: folderType, providers: ['imdbFind'] }
+
+	// it's important to use these regex matches separate:
+
+	// ends with year in parantheses:
+
+	const yearMatch1 = folderName.match(/ \((\d{4}|\d{4}\-\d{4})\)$/)
+
+	if ((yearMatch1 || []).length > 1) {
+		obj.year = yearMatch1[1]
+		obj.name = folderName.replace(/ \((\d{4}|\d{4}\-\d{4})\)$/, '')
+	} else {
+
+		// ends with year without parantheses:
+
+		const yearMatch2 = folderName.match(/ (\d{4}|\d{4}\-\d{4})$/)
+		if ((yearMatch2 || []).length > 1) {
+			obj.year = yearMatch2[1]
+			obj.name = folderName.replace(/ (\d{4}|\d{4}\-\d{4})$/, '')
+		} else {
+
+			const tnpParsed = tnp(folderName)
+
+			if (tnpParsed.title) {
+				obj.name = tnpParsed.title
+				if (tnpParsed.year) {
+					obj.year = tnpParsed.year
+				} else if (obj.type == 'series' && shouldNotParseName(folderName)) {
+					// this is leads to a better match for series
+					obj.name = folderName
+				}
+			}
+
+		}
+	}
+
+	if (!obj.name)
+		obj.name = folderName.toLowerCase()
+	else
+		obj.name = obj.name.toLowerCase()
+
+	// "Marvel's ..." can be a special case...
+	if (obj.type == 'series' && obj.name.startsWith('marvel'))
+		obj.name = obj.name.replace(/^marvel ?'?s /,'')
+
+	nameToImdb(obj, (err, res, inf) => {
+		if ((res || '').startsWith('tt')) {
+			settings.imdbCache[folderType][folderName] = res
+			cb(res)
+		} else {
+			cb(false)
+		}
+	})
+}
+
+function posterFromImdbId(imdbId) {
+	let posterType = settings.posterType
+	if (settings.customPosters[imdbId]) {
+		return settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
+	} else {
+		if (settings.textless)
+			posterType = posterType.replace('poster-', 'textless-')
+		return 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg'
+	}
+}
+
+
 const nameQueue = async.queue((task, cb) => {
 
 	if (queueDisabled) {
@@ -77,7 +157,7 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = settings.customPosters[imdbId] || ('https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + settings.posterType + '/' + imdbId + '.jpg')
+		const posterUrl = posterFromImdbId(imdbId)
 		needle.get(posterUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(task.folder, 'poster.jpg'), res.raw, (err) => {
@@ -133,78 +213,18 @@ const nameQueue = async.queue((task, cb) => {
 		})
 	}
 
-	let imdbId
-
-	if (settings.overwriteMatches[task.type][task.name])
-		imdbId = settings.overwriteMatches[task.type][task.name]
-
-	if (!imdbId && settings.imdbCache[task.type][task.name])
-		imdbId = settings.imdbCache[task.type][task.name]
-
-	if (imdbId) {
-		getPoster(imdbId)
-		if (settings.backdrops)
-			getBackdrop(imdbId)
-		return
-	}
-
-	const obj = { type: task.type, providers: ['imdbFind'] }
-
-	// it's important to use these regex matches separate:
-
-	// ends with year in parantheses:
-
-	const yearMatch1 = task.name.match(/ \((\d{4}|\d{4}\-\d{4})\)$/)
-
-	if ((yearMatch1 || []).length > 1) {
-		obj.year = yearMatch1[1]
-		obj.name = task.name.replace(/ \((\d{4}|\d{4}\-\d{4})\)$/, '')
-	} else {
-
-		// ends with year without parantheses:
-
-		const yearMatch2 = task.name.match(/ (\d{4}|\d{4}\-\d{4})$/)
-		if ((yearMatch2 || []).length > 1) {
-			obj.year = yearMatch2[1]
-			obj.name = task.name.replace(/ (\d{4}|\d{4}\-\d{4})$/, '')
-		} else {
-
-			const tnpParsed = tnp(task.name)
-
-			if (tnpParsed.title) {
-				obj.name = tnpParsed.title
-				if (tnpParsed.year) {
-					obj.year = tnpParsed.year
-				} else if (obj.type == 'series' && shouldNotParseName(task.name)) {
-					// this is leads to a better match for series
-					obj.name = task.name
-				}
-			}
-
-		}
-	}
-
-	if (!obj.name)
-		obj.name = task.name.toLowerCase()
-	else
-		obj.name = obj.name.toLowerCase()
-
-	// "Marvel's ..." can be a special case...
-	if (obj.type == 'series' && obj.name.startsWith('marvel'))
-		obj.name = obj.name.replace(/^marvel ?'?s /,'')
-
-	nameToImdb(obj, (err, res, inf) => {
-		if ((res || '').startsWith('tt')) {
-			settings.imdbCache[task.type][task.name] = res
-			getPoster(res)
+	folderNameToImdb(task.name, task.type, imdbId => {
+		if (imdbId) {
+			getPoster(imdbId)
 			if (settings.backdrops)
-				getBackdrop(res)
+				getBackdrop(imdbId)
 		} else {
 			endIt()
 			if (settings.backdrops) // end again
 				endIt()
 		}
 	})
+
 }, 1)
 
 nameQueue.drain(() => {
@@ -364,6 +384,9 @@ app.get('/setSettings', (req, res) => {
 	const posterType = (req.query || {}).posterType || 'poster-default'
 	settings.posterType = posterType
 	config.set('posterType', settings.posterType)
+	const overwritePeriod = (req.query || {}).overwritePeriod || 'overwrite-monthly'
+	settings.minOverwritePeriod = overwritePeriod == 'overwrite-monthly' ? 29 * 24 * 60 * 60 * 1000 : 14 * 24 * 60 * 60 * 1000
+	config.set('minOverwritePeriod', settings.minOverwritePeriod)
 	const overwrite = (req.query || {}).overwrite || false
 	if (overwrite == 1 && !settings.overwrite) {
 		// this is here to ensure we don't consume too many requests needlessly
@@ -375,6 +398,9 @@ app.get('/setSettings', (req, res) => {
 	const backdrops = (req.query || {}).backdrops || false
 	settings.backdrops = backdrops == 1 ? true : false
 	config.set('backdrops', settings.backdrops)
+	const textless = (req.query || {}).textless || false
+	settings.textless = textless == 1 ? true : false
+	config.set('textless', settings.textless)
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })	
 })
@@ -386,6 +412,8 @@ app.get('/getSettings', (req, res) => {
 		posterType: settings.posterType,
 		overwrite: settings.overwrite,
 		backdrops: settings.backdrops,
+		textless: settings.textless,
+		minOverwritePeriod: settings.minOverwritePeriod,
 		movieFolders: settings.mediaFolders.movie,
 		seriesFolders: settings.mediaFolders.series,
 		historyCount: Object.keys(settings.imdbCache.movie || []).length + Object.keys(settings.imdbCache.series || []).length,
@@ -444,7 +472,45 @@ app.get('/setApiKey', (req, res) => {
 	}
 })
 
-app.get('/addFixMatch', (req, res) => {
+function changePosterForFolder(folder, imdbId, type) {
+	return new Promise((resolve, reject) => {
+		if (folder && imdbId && type) {
+			let mediaFolders = []
+			settings.mediaFolders[type].forEach(folders => {
+				mediaFolders = mediaFolders.concat(folders)
+			})
+			if (mediaFolders.length) {
+				let allFolders = []
+				mediaFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
+
+				if (allFolders.length) {
+					const simplifiedFolder = folder.trim().toLowerCase()
+					let folderMatch
+					allFolders.some(fldr => {
+						const fldrName = fldr.split(path.sep).pop()
+						if (fldrName.trim().toLowerCase() == simplifiedFolder) {
+							folderMatch = fldrName
+							nameQueue.unshift({ name: fldrName, folder: fldr, type, forced: true })
+							return true
+						}
+					})
+					if (folderMatch) {
+						settings.overwriteMatches[type][folderMatch] = imdbId
+						config.set('overwriteMatches', settings.overwriteMatches)
+						resolve({ success: true })
+						return
+					}
+				}
+
+			}
+			resolve({ success: false, message: `The folder could not be found within your ${type} folders` })
+			return
+		}
+		resolve({ success: false, message: `One or more required parameters are missing or invalid` })
+	})
+}
+
+app.get('/addFixMatch', async(req, res) => {
 	const folder = (req.query || {}).folder || ''
 	const imdbPart = (req.query || {}).imdb || ''
 	const type = (req.query || {}).type || ''
@@ -471,39 +537,8 @@ app.get('/addFixMatch', (req, res) => {
 		res.send({ success: false, message: `Invalid IMDB URL / IMDB ID` })
 		return
 	}
-	if (folder && imdbId && type) {
-		let mediaFolders = []
-		settings.mediaFolders[type].forEach(folders => {
-			mediaFolders = mediaFolders.concat(folders)
-		})
-		if (mediaFolders.length) {
-			let allFolders = []
-			mediaFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
-
-			if (allFolders.length) {
-				const simplifiedFolder = folder.trim().toLowerCase()
-				let folderMatch
-				allFolders.some(fldr => {
-					const fldrName = fldr.split(path.sep).pop()
-					if (fldrName.trim().toLowerCase() == simplifiedFolder) {
-						folderMatch = fldrName
-						nameQueue.push({ name: fldrName, folder: fldr, type, forced: true })
-						return true
-					}
-				})
-				if (folderMatch) {
-					settings.overwriteMatches[type][folderMatch] = imdbId
-					config.set('overwriteMatches', settings.overwriteMatches)
-					res.send({ success: true })
-					return
-				}
-			}
-
-		}
-		res.send({ success: false, message: `The folder could not be found within your ${type} folders` })
-		return
-	}
-	res.send({ success: false, message: `One or more required parameters are missing or invalid` })
+	const respObj = await changePosterForFolder(folder, imdbId, type)
+	res.send(respObj)
 })
 
 let noSpamScan = false
@@ -537,6 +572,24 @@ app.get('/runFullScan', (req, res) => {
 		return
 	}
 	res.send({ success: false, message: `Full scan already running` })
+})
+
+app.get('/forceOverwriteScan', (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	if (noSpamScan) {
+		res.send({ success: false, message: `Full scan already running` })
+		return
+	}
+	noSpamScan = true
+	setTimeout(() => {
+		noSpamScan = false
+	}, 5000)
+	for (const [type, folders] of Object.entries(settings.mediaFolders)) {
+		console.log(`Overwrite scan forced to start for ${type} folders`)
+		settings.lastFullUpdate[type] = Date.now()
+		startFetchingPosters(folders, type, true)
+	}
+	res.send({ success: true })
 })
 
 app.get('/pollData', (req, res) => {
@@ -614,8 +667,130 @@ app.get('/searchStrings', async (req, res) => {
 		return
 	}
 	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType])
-	res.setHeader('Content-Type', 'text/plain')
+	res.setHeader('Content-Type', 'application/json')
 	res.send(searchStringsResp)	
+})
+
+app.get('/poster', (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.name
+	const mediaType = req.query.type
+	if (!mediaName || !mediaType) {
+		internalError()
+		return
+	}
+	function pipePoster(imdbId) {
+		const posterUrl = posterFromImdbId(imdbId)
+		needle.get(posterUrl).pipe(res)
+	}
+	folderNameToImdb(mediaName, mediaType, imdbId => {
+		if (imdbId)
+			pipePoster(imdbId)
+		else
+			internalError()
+	})
+})
+
+app.get('/checkRequests', (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	needle.get('https://api.ratingposterdb.com/' + settings.apiKey + '/requests?break=' + Date.now(), (err, resp, body) => {
+		if ((body || {}).limit) {
+			body.success = true
+			res.send(body)
+		} else {
+			res.send({ success: false })
+		}
+	})
+})
+
+const ISO6391 = require('iso-639-1')
+
+const tmdbKey = require('./tmdbKey').key
+
+app.get('/poster-choices', (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.name
+	const mediaType = req.query.type
+	if (!mediaName || !mediaType) {
+		internalError()
+		return
+	}
+	folderNameToImdb(mediaName, mediaType, imdbId => {
+		if (imdbId) {
+			const tmdbType = mediaType == 'movie' ? mediaType : 'tv'
+			needle.get('https://api.themoviedb.org/3/find/'+imdbId+'?api_key='+tmdbKey+'&language=en-US&external_source=imdb_id', (err, resp, body) => {
+				if (!err && resp.statusCode == 200 && (((body || {})[tmdbType + '_results'] || [])[0] || {}).id) {
+					const tmdbId = body[tmdbType + '_results'][0].id
+					needle.get('https://api.themoviedb.org/3/'+tmdbType+'/'+tmdbId+'/images?api_key='+tmdbKey, (err, resp, body) => {
+						if (((body || {}).posters || []).length) {
+							res.setHeader('Content-Type', 'application/json')
+							res.send({ items: body.posters.map(el => { return { file_path: el.file_path, lang: el['iso_639_1'] ? ISO6391.getName(el['iso_639_1']) : null } }) })
+						} else {
+							internalError()
+						}
+					})
+				} else {
+					internalError()
+				}
+			})
+		} else
+			internalError()
+	})
+})
+
+app.get('/tmdb-poster', (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.folder
+	const mediaType = req.query.type
+	const mediaTmdbPoster = req.query.tmdbPoster
+	if (!mediaName || !mediaType || !mediaTmdbPoster) {
+		internalError()
+		return
+	}
+	folderNameToImdb(mediaName, mediaType, async (imdbId) => {
+		if (imdbId) {
+			settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/[[poster-type]]/tmdb-poster/[[imdb-id]]/' + mediaTmdbPoster
+			config.set('customPosters', settings.customPosters)
+			res.setHeader('Content-Type', 'application/json')
+			const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
+			res.send(respObj)
+		} else
+			internalError()
+	})
+})
+
+
+app.get('/custom-poster', (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.folder
+	const mediaType = req.query.type
+	const mediaCustomPoster = req.query.customPoster
+	if (!mediaName || !mediaType || !mediaCustomPoster) {
+		internalError()
+		return
+	}
+	folderNameToImdb(mediaName, mediaType, async (imdbId) => {
+		if (imdbId) {
+			settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/[[poster-type]]/custom-poster/[[imdb-id]].jpg?img=' + encodeURIComponent(mediaCustomPoster)
+			config.set('customPosters', settings.customPosters)
+			res.setHeader('Content-Type', 'application/json')
+			const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
+			res.send(respObj)
+		} else
+			internalError()
+	})
 })
 
 let staticPath = path.join(path.dirname(process.execPath), 'static')

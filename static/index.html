@@ -60,6 +60,34 @@
             .folder-list .folder-line:hover {
                 background-color: rgba(0,0,0,0.1);
             }
+            .search-list {
+                width: 80%;
+            }
+            .search-list .folder-line {
+                padding: 15px;
+                border-bottom: 1px solid rgba(0,0,0,0.3);
+                width: calc(100% - 30px);
+                cursor: pointer;
+                text-align: left;
+            }
+            .search-list .folder-line:hover {
+                background-color: rgba(0,0,0,0.1);
+            }
+            .poster-choice-img {
+                margin: 10px;
+                padding: 10px;
+                border: 1px solid rgba(0,0,0,0.5);
+                cursor: pointer;
+            }
+            .poster-choice-img:hover {
+                border: 1px solid #0078e7;
+            }
+            #folder-poster-edit-img {
+                width: 290px;
+                height: 429px;
+                max-width: 80%;
+                background-color: rgba(0,0,0,0.1);
+            }
         </style>
     </head>
     <body>
@@ -106,6 +134,13 @@
                 <form class="pure-form pure-form-aligned" id="adv-opts-form">
                     <div id="adv-form">
                         <b>Poster Type</b><br/><br/>
+                        <div id="note-tier-3-textless">
+                            <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to prefer textless posters.</i>
+                            <br/><br/>
+                        </div>
+                        <label for="textless-option-one" class="pure-checkbox" style="display: inline-block">
+                            <input type="checkbox" id="textless-option-one" class="optionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                        <br/><br/>
                         <div id="note-tier-0" style="display: none">
                             <i style="opacity: 0.7">Tier 0 API keys can only use the default poster type.</i>
                             <br/><br/>
@@ -134,14 +169,6 @@
                         <label for="backdrops-option-one" class="pure-checkbox" style="display: inline-block">
                             <input type="checkbox" id="backdrops-option-one" class="optionsCheckboxBackdrops" value="backdrops" disabled="" /> Download Backdrops</label>
                         <br/><br/><br/>
-                        <b>Overwrite Images</b><br/><br/>
-                        <div>
-                            <i style="opacity: 0.7">Overwriting images will keep the ratings updated, but will also use more requests.</i>
-                            <br/><br/>
-                        </div>
-                        <label for="overwrite-option-one" class="pure-checkbox" style="display: inline-block">
-                            <input type="checkbox" id="overwrite-option-one" class="optionsCheckbox" value="overwrite" /> Overwrite Images</label>
-                        <br/><br/><br/>
                         <b>Media Folders</b><br/><br/>
                         <div>
                             <span id="watched-folders" style="opacity: 0.7">Watching 0 movie folders and 0 series folders.</span>
@@ -156,16 +183,33 @@
                         <b>History</b><br/><br/>
                         <div id="history-msg" style="opacity: 0.7">Added images to 0 folders.</div>
                         <br/>
-                        <button type="button" class="pure-button" onclick="openFixMatch()">Fix Match</button>
+                        <button type="button" class="pure-button" onclick="openPosterEdit('movie')">Edit Movie Poster</button>
+                        &nbsp;&nbsp;&nbsp;
+                        <button type="button" class="pure-button" onclick="openPosterEdit('series')">Edit Series Poster</button>
                         <br/><br/><br/>
-                        <button type="button" class="pure-button" onclick="runFullScan()">Run Full Scan</button>
-                        <br/><br/>
-                        <div id="full-scan-msg" style="opacity: 0.7">Last full scan started: never</div>
+                        <button type="button" class="pure-button" onclick="openCheckRequests()">Check Requests</button>
+                        <br/><br/><br/>
+                        <button type="button" class="pure-button" onclick="openScanSettings()">Scan Settings</button>
+                        <br/><br/><br/>
                     </div>
                 </form>
             </div>
             <br/><br/>
         </center>
+        <div id="check-requests" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Check Requests</h1>
+            <div style="text-align: center">
+                <div id="request-count"></div>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="closeCheckRequests()">Close</button>
+                <br/><br/><br/>
+                <center>
+                    <div class="folder-list">
+                    </div>
+                </center>
+
+            </div>
+        </div>
         <div id="add-media-folder" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title" id="add-media-folder-title"></h1>
             <div style="text-align: center">
@@ -201,35 +245,149 @@
 
             </div>
         </div>
+        <div id="choose-media-folder-type" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Choose Media Type</h1>
+            <br/><br/>
+            <div style="text-align: center">
+                <button type="button" class="pure-button pure-button-primary" onclick="openMoviePosterEdit()">Movie</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button pure-button-primary" onclick="openSeriesPosterEdit()">Series</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="closeChooseMediaFolder()">Close</button>
+            </div>
+        </div>
+        <div id="search-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Search Media Folder</h1>
+            <div style="text-align: center">
+                <form class="pure-form">
+                    <input id="search-folder-input" placeholder="Search">
+                </form>
+                <br/>
+                <button type="button" class="pure-button" onclick="closeSearchFolder()">Close</button>
+                <br/><br/><br/>
+                <center>
+                    <div class="search-list">
+                    </div>
+                </center>
+            </div>
+        </div>
+        <div id="folder-poster-edit" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Poster Edit</h1>
+            <div style="text-align: center">
+                <img id="folder-poster-edit-img" src="">
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="openFixMatch()">Fix Match</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="openChoosePoster()">Choose Poster</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="openCustomPoster()">Custom Poster</button>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="closeFolderPosterEdit()">Close</button>
+            </div>
+        </div>
+        <div id="custom-poster" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Custom Poster</h1>
+            <div id="custom-poster-allowed" style="text-align: center">
+                <form class="pure-form">
+                    <input type="text" id="custom-poster-input" placeholder="Image URL" />
+                </form>
+                <button type="button" class="pure-button pure-button-primary" onclick="loadCustomPoster()">Load Poster Image</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="closeCustomPoster()">Close</button>
+                <br/><br/><br/>
+            </div>
+            <div id="custom-poster-disallowed" style="display: none; text-align: center">
+                Tier 3 (or higher) is required to set custom posters.
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="closeCustomPoster()">Close</button>
+            </div>
+            <br/><br/><br/>
+        </div>
+        <div id="choose-poster" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Choose Poster</h1>
+            <div id="poster-lang-allowed" style="text-align: center">
+                <form class="pure-form">
+                    <label for="choose-poster-lang">Poster Language&nbsp;</label>
+                    <select id="choose-poster-lang">
+                    </select>
+                </form>
+                <button type="button" class="pure-button pure-button-primary" onclick="loadPostersForLang()">Load Posters</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="closeChoosePoster()">Close</button>
+                <br/><br/>
+                <div id="poster-choices">
+                </div>
+            </div>
+            <div id="poster-lang-disallowed" style="display: none; text-align: center">
+                Tier 2 (or higher) is required to choose alternative posters.
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="closeChoosePoster()">Close</button>
+            </div>
+            <br/><br/><br/>
+        </div>
         <div id="fix-media-match" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Fix Media Match</h1>
             <div style="text-align: center">
-                <span style="opacity: 0.7">
-                    In the unlikely event that a folder is matched wrongly, you can match the exact folder name to an IMDB ID.
-                    <br/><br/>
-                    The correct poster for the folder will then be downloaded as soon as possible.
-                    <br/><br/>
-                    (most likely under 1 min, but may take up to 1 hour if a full scan is currently in progress)
-                </span>
-                <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="closeFixMediaFolder()">Close</button>
                 <br/><br/><br/><br/>
                 <form class="pure-form pure-form-aligned" id="fix-match-form">
-                    <input type="text" id="exact-folder-name" placeholder="Exact folder name" />
-                    <br/><br/>
                     <input type="text" id="imdb-url" placeholder="IMDB URL or IMDB ID" />
-                    <br/><br/><br/>
-                    <label for="fix-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
-                        <input type="radio" id="fix-checkbox-radio-option-one" name="fixOptionsRadios" value="movie" checked="" /> Movie</label>
-                    &nbsp;&nbsp;
-                    <label for="fix-checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
-                        <input type="radio" id="fix-checkbox-radio-option-two" name="fixOptionsRadios" value="series" /> Series</label>
                 </form>
                 <br/>
                 <button type="button" class="pure-button pure-button-primary" onclick="addFixMatch()">Add Match</button>
                 <br/><br/><br/>
                 <div class="fix-error-message" style="display: none; color: red"></div>
                 <br/><br/>
+            </div>
+        </div>
+        <div id="scan-settings" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Scan Settings</h1>
+            <div style="text-align: center">
+                <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
+                    With the exception of "overwrite images", all other settings are for advanced users and should not be used without proper understanding of their implications.
+                </div>
+                <br/><br/><br/>
+                <b>Overwrite Images</b><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Overwriting images will keep the ratings updated, but will also use more requests.</i>
+                    <br/><br/>
+                </div>
+                <label for="overwrite-option-one" class="pure-checkbox" style="display: inline-block">
+                    <input type="checkbox" id="overwrite-option-one" class="optionsCheckbox" value="overwrite" /> Overwrite Images</label>
+                <br/><br/><br/><br/>
+                <b>Overwrite Frequency</b><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Only applies if "Overwrite Images" is enabled.</i>
+                    <br/><br/>
+                </div>
+                <form class="pure-form pure-form-aligned" id="overwrite-opts-form">
+                    <label for="checkbox-radio-overwrite-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-overwrite-one" name="overwriteRadios" value="overwrite-monthly" checked="" /> Monthly (default)</label>
+                    &nbsp;&nbsp;
+                    <label for="checkbox-radio-overwrite-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-overwrite-two" name="overwriteRadios" value="overwrite-bimonthly" /> Bimonthly</label>
+                </form>
+                <br/><br/><br/><br/>
+                <b>Manual Scan Options</b>
+                <br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Scans are done periodically by default, by runing a full scan you initiate a scan manually.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="runFullScan()">Run Full Scan</button>
+                <br/><br/>
+                <div id="full-scan-msg" style="opacity: 0.7">Last full scan started: never</div>
+                <br/><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Forcing an overwrite will update all posters, refresh all ratings and apply new settings.</i>
+                    <br/><br/>
+                    <i style="opacity: 0.7"><b>Warning:</b> Forcing an overwrite scan may deplete all available requests for this month.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="forceOverwriteScan()">Force Overwrite Scan</button>
+                <br/><br/><br/><br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="closeScanSettings()">Save &amp; Close</button>
+                <br/><br/><br/>
             </div>
         </div>
         <script>
@@ -250,6 +408,9 @@
                 })
                 setTimeout(checkUpdate, 24 * 60 * 60 * 1000) // check daily
             }
+            var searchStrings = {}
+            var searchFolderName = ''
+            var searchFolderType = ''
             var apiKey
             function load_api_key(skipValidation) {
                 if ($('#api-key-error-1').is(':visible'))
@@ -291,6 +452,8 @@
                         $('#checkbox-radio-option-two').prop('disabled', true)
                         $('#checkbox-radio-option-three').prop('disabled', true)
                         $('#checkbox-radio-option-four').prop('disabled', true)
+                        $('#poster-lang-allowed').hide()
+                        $('#poster-lang-disallowed').show()
                     } else {
                         $('#checkbox-radio-option-two').prop('disabled', false)
                         $('#checkbox-radio-option-three').prop('disabled', false)
@@ -299,6 +462,8 @@
                     if (tier == 3 || tier == 4 || tier == 5) {
                         $('#note-tier-3').hide()
                         $('#backdrops-option-one').prop('disabled', false)
+                        $('#note-tier-3-textless').hide()
+                        $('#textless-option-one').prop('disabled', false)
                     } else {
                         if ($('#backdrops-option-one').is(':checked')) {
                             $('#backdrops-option-one').prop('checked', false)
@@ -306,6 +471,10 @@
                         }
                         $('#note-tier-3').show()
                         $('#backdrops-option-one').prop('disabled', true)
+                        $('#note-tier-3-textless').show()
+                        $('#textless-option-one').prop('disabled', true)
+                        $('#custom-poster-allowed').hide()
+                        $('#custom-poster-disallowed').show()
                     }
                     if (shouldUpdate)
                         setTimeout(() => { updateSettings() })
@@ -330,6 +499,7 @@
             }
             function updateSettings() {
                 var posterType = $('input[name=optionsRadios]:checked', '#adv-opts-form').val();
+                var overwritePeriod = $('input[name=overwriteRadios]:checked', '#overwrite-opts-form').val();
                 var overwrite = 0;
                 if ($("#overwrite-option-one").is(':checked')) {
                   overwrite = 1;
@@ -338,7 +508,11 @@
                 if ($("#backdrops-option-one").is(':checked')) {
                   backdrops = 1;
                 }
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops, function(data) {});
+                var textless = 0
+                if ($("#textless-option-one").is(':checked')) {
+                  textless = 1;
+                }
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod, function(data) {});
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
@@ -356,9 +530,27 @@
                         if (data.backdrops) {
                             $("#backdrops-option-one").prop('checked', true)
                         }
+                        if (data.textless) {
+                            $("#textless-option-one").prop('checked', true)
+                        }
                         if (data.posterType) {
                             $('input[name=optionsRadios]', '#adv-opts-form').each((ij,el)=> {
                                 if ($(el).val() == data.posterType) {
+                                    $(el).prop('checked', true)
+                                } else {
+                                    $(el).prop('checked', false)
+                                }
+                            })
+                        }
+                        if (data.minOverwritePeriod) {
+                            var overwritePeriod = ''
+                            if (data.minOverwritePeriod == 29 * 24 * 60 * 60 * 1000) {
+                                overwritePeriod = 'overwrite-monthly'
+                            } else {
+                                overwritePeriod = 'overwrite-bimonthly'
+                            }
+                            $('input[name=overwriteRadios]', '#overwrite-opts-form').each((ij,el)=> {
+                                if ($(el).val() == overwritePeriod) {
                                     $(el).prop('checked', true)
                                 } else {
                                     $(el).prop('checked', false)
@@ -379,10 +571,16 @@
                 $('#adv-opts-form input').on('change', function() {
                     updateSettings();
                 });
+                $('#overwrite-opts-form input').on('change', function() {
+                    updateSettings();
+                });
                 $("#overwrite-option-one").on('change', function() {
                     updateSettings();
                 });
                 $("#backdrops-option-one").on('change', function() {
+                    updateSettings();
+                });
+                $("#textless-option-one").on('change', function() {
                     updateSettings();
                 });
                 $("#change-api-key").click(function(e) {
@@ -395,6 +593,25 @@
                     $('#api-key-form').show()
                 });
                 setInterval(pollData, 2000)
+                $('#search-folder-input').keyup(function() {
+                    var search = $(this).val()
+                    if (!search) {
+                        $('.search-list').html('')
+                        return;
+                    }
+                    var rx = new RegExp(searchStrings.forbiddenChar+'([^'+searchStrings.forbiddenChar+']*'+search+'[^'+searchStrings.forbiddenChar+']*)'+searchStrings.forbiddenChar,'gi')
+                    var i = 0, searchResults = [];
+                    while (result = rx.exec(searchStrings.folders)) {
+                        searchResults.push(result[1])
+                        i += 1
+                        if (i >= 10)
+                            break;
+                    }
+                    $('.search-list').html(searchResults.map(function(el, ij) {
+                        return '<div class="folder-line add-search-line" onclick="openFolderPosterEdit('+ij+')">' + el + '</div>'
+                    }))
+
+                })
             });
             function sep(path) {
                 return path.includes('/') ? '/' : '\\'
@@ -520,22 +737,64 @@
                 $('#remove-media-folder').hide()
             }
             function openFixMatch() {
+                $('#fix-media-match').find('h1.dialog-title').text('Fix Match for ' + searchFolderName)
                 $('#fix-media-match').show()
             }
             function closeFixMediaFolder() {
                 $('.fix-error-message').hide()
+                openFolderPosterEdit(false, searchFolderName, true)
                 $('#fix-media-match').hide()
             }
+            function closeChooseMediaFolder() {
+                searchStrings = {}
+                $('#choose-media-folder-type').hide()
+            }
+            function capitalizeFirstLetter(string) {
+              return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            function openPosterEdit(type) {
+                searchFolderType = type
+                $.get('/searchStrings?type=' + type, function(data) {
+                    if (((data || {}).folders || '').length) {
+                        searchStrings = data
+                        $('#choose-media-folder-type').hide()
+                        $('#search-folder-input').val('')
+                        $('#search-folder').find('h1.dialog-title').text('Search ' + capitalizeFirstLetter(type) + ' Folders')
+                        $('#search-folder').show()
+                    }
+                })
+            }
+            function openMoviePosterEdit() { openPosterEdit('movie') }
+            function openSeriesPosterEdit() { openPosterEdit('series') }
+            function closeSearchFolder() {
+                searchStrings = {}
+                $('#search-folder').hide()
+            }
+            function openFolderPosterEdit(ij, srcFolderName, noReloadImg) {
+                searchFolderName = srcFolderName || $($('.add-search-line')[ij]).text()
+                $('.search-list').html('')
+                searchStrings = {}
+                $('#search-folder').hide()
+                $('#folder-poster-edit').find('h1.dialog-title').text(searchFolderName)
+                if (!noReloadImg) {
+                    $('#folder-poster-edit-img').attr('src','');
+                    setTimeout(() => {
+                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now())
+                    })
+                }
+                $('#folder-poster-edit').show()
+            }
+            function closeFolderPosterEdit() {
+                $('#folder-poster-edit').hide()
+            }
             function addFixMatch() {
-                var folder = $('#exact-folder-name').val()
                 var imdbUrl = $('#imdb-url').val()
-                var folderType = $('input[name=fixOptionsRadios]:checked', '#fix-match-form').val()
-                $.get('/addFixMatch?folder=' + encodeURIComponent(folder) + '&imdb=' + encodeURIComponent(imdbUrl) + '&type=' + folderType, function(data) {
+                $.get('/addFixMatch?folder=' + encodeURIComponent(searchFolderName) + '&imdb=' + encodeURIComponent(imdbUrl) + '&type=' + searchFolderType, function(data) {
                     if ((data || {}).success) {
-                        closeFixMediaFolder()
-                        $('#exact-folder-name').val('')
+                        openFolderPosterEdit(false, searchFolderName)
                         $('#imdb-url').val('')
-                        $("#fix-checkbox-radio-option-one").prop('checked', true)
+                        $('.fix-error-message').hide()
+                        $('#fix-media-match').hide()
                     } else if ((data || {}).message) {
                         $('.fix-error-message').text(data.message)
                         $('.fix-error-message').show()
@@ -545,8 +804,105 @@
                     }
                 })
             }
+            var choosePosterData = {}
+            function loadPostersForLang() {
+                var tmdbPrefix = 'https://www.themoviedb.org/t/p/w342'
+                var langChoice = $('#choose-poster-lang').children("option:selected").val()
+                var langPosters = (langChoice == 'none' ? choosePosterData.items : choosePosterData.items.filter(function(item) { return item.lang == langChoice })).slice(0, 25).map(function(el) { return tmdbPrefix + el.file_path })
+                $('#poster-choices').html('')
+                langPosters.forEach(function(el, ij) {
+                    $('#poster-choices').append('<img src="' + el + '" class="poster-choice-img" onclick="useThisPoster('+ij+')">')
+                })
+            }
+            function useThisPoster(ij) {
+                var thisPoster = $($('.poster-choice-img')[ij]).attr('src').split('/').pop()
+                $.get('/tmdb-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&tmdbPoster=' + thisPoster, function(data) {
+                    if ((data || {}).success) {
+                        openFolderPosterEdit(false, searchFolderName)
+                        $('#poster-choices').html('')
+                        $('#choose-poster').hide()
+                    } else if ((data || {}).message) {
+                        $('.fix-error-message').text(data.message)
+                        $('.fix-error-message').show()
+                    } else {
+                        $('.fix-error-message').text('Unknown error occurred')
+                        $('.fix-error-message').show()
+                    }
+                })
+            }
+            function openChoosePoster() {
+                $('#choose-poster').find('h1.dialog-title').text(searchFolderName)
+                $('#choose-poster').show()
+                $('#folder-poster-edit').hide()
+                $.get('/poster-choices?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName), function(data) {
+                    if (((data || {}).items || []).length) {
+                        choosePosterData = data
+                        $('#choose-poster-lang').empty()
+                        $('#choose-poster-lang').append(new Option('None', 'none'))
+
+                        var langs = data.items.map(function(el) { return el.lang })
+                        langs = langs.filter(function(item, pos) { return item && langs.indexOf(item) == pos })
+                        langs.forEach(function(el) {
+                            $('#choose-poster-lang').append(new Option(el, el))
+                        })
+                    } else {
+                        choosePosterData = { items: [] }
+                    }
+                })
+            }
+            function closeChoosePoster() {
+                openFolderPosterEdit(false, searchFolderName, true)
+                $('#choose-poster').hide()
+            }
+            function openCustomPoster() {
+                $('#custom-poster-input').val('')
+                $('#custom-poster').find('h1.dialog-title').text(searchFolderName)
+                $('#custom-poster').show()
+                $('#folder-poster-edit').hide()
+            }
+            function loadCustomPoster() {
+                var thisPoster = $('#custom-poster-input').val()
+                $.get('/custom-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&customPoster=' + encodeURIComponent(thisPoster), function(data) {
+                    if ((data || {}).success) {
+                        openFolderPosterEdit(false, searchFolderName)
+                        $('#custom-poster-input').val('')
+                        $('#custom-poster').hide()
+                    } else if ((data || {}).message) {
+                        $('.fix-error-message').text(data.message)
+                        $('.fix-error-message').show()
+                    } else {
+                        $('.fix-error-message').text('Unknown error occurred')
+                        $('.fix-error-message').show()
+                    }
+                })
+            }
+            function closeCustomPoster() {
+                openFolderPosterEdit(false, searchFolderName, true)
+                $('#custom-poster').hide()
+            }
+            function openScanSettings() {
+                $('#scan-settings').show()
+            }
+            function closeScanSettings() {
+                $('#scan-settings').hide()
+            }
             function runFullScan() {
                 $.get('/runFullScan', function(data) {});
+            }
+            function forceOverwriteScan() {
+                $.get('/forceOverwriteScan', function(data) {});
+            }
+            function openCheckRequests() {
+                $.get('/checkRequests', function(data) {
+                    if (data.req && data.limit) {
+                        $('#request-count').text('Requests: ' + data.req + ' / Limit: ' + data.limit)
+                        $('#check-requests').show()
+                    }
+                })
+            }
+            function closeCheckRequests() {
+                $('#check-requests').hide()
+                $('#request-count').text('')
             }
             function pollData() {
                 $.get('/pollData', function(data) {
