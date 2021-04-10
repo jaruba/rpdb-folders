@@ -49,6 +49,7 @@ Recommended movie folder names (in order of priority):
 - It is advised to use the "refresh library metadata periodically" or any similar setting in your media center application to ensure that posters that have not been loaded in due time will be added automatically later on
 - Movies and series that have less then 500 votes on IMDB will not have rating images, these items are refreshed periodically and the images will become available as soon as it passes the 500 votes threshold
 - If a movie or series has been matched wrongly (if the folder names have been made correctly this is an extremely uncommon scenario), you can use the "Fix Match" button in RPDB Folders to correctly match a folder name to either an IMDB URL or ID
+- On OSX you may get an error saying that drivelist.node cannot be opened because the developer cannot be verified, if this is the case than from the RPDB Folders app location go to "node_modules/drivelist/build/Release" and open "drivelist.node" from that folder with TextEdit, this will resolve the issue
 
 ## Screenshot
 
