@@ -37,6 +37,7 @@ let map = {
     backdrops: false,
     customPosters: {},
     textless: false,
+    labels: {},
 }
 
 function loadUserConfig(err, obj) {

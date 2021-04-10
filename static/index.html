@@ -203,18 +203,25 @@
                 <br/><br/>
                 <button type="button" class="pure-button" onclick="closeCheckRequests()">Close</button>
                 <br/><br/><br/>
-                <center>
-                    <div class="folder-list">
-                    </div>
-                </center>
 
             </div>
         </div>
         <div id="add-media-folder" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title" id="add-media-folder-title"></h1>
             <div style="text-align: center">
+                <div id="folder-label-note">If a label is chosen, it will be added to the top of all posters from this folder.<br/><br/><br/></div>
                 <div class="current-folder"></div>
                 <br/>
+                <form class="pure-form folder-label-form">
+                    <label for="folder-label">Label&nbsp;</label>
+                    <select id="folder-label">
+                        <option value="none">None</option>
+                        <option value="4K">4K</option>
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="SD">SD</option>
+                    </select>
+                </form>
                 <button type="button" class="pure-button pure-button-primary" onclick="addFolder()">Add Folder</button>
                 &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="closeBrowser()">Close</button>
@@ -464,11 +471,19 @@
                         $('#backdrops-option-one').prop('disabled', false)
                         $('#note-tier-3-textless').hide()
                         $('#textless-option-one').prop('disabled', false)
+                        $('.folder-label-form').show()
+                        $('#folder-label-note').show()
                     } else {
                         if ($('#backdrops-option-one').is(':checked')) {
                             $('#backdrops-option-one').prop('checked', false)
                             shouldUpdate = true
                         }
+                        if ($('#textless-option-one').is(':checked')) {
+                            $('#textless-option-one').prop('checked', false)
+                            shouldUpdate = true
+                        }
+                        $('.folder-label-form').hide()
+                        $('#folder-label-note').hide()
                         $('#note-tier-3').show()
                         $('#backdrops-option-one').prop('disabled', true)
                         $('#note-tier-3-textless').show()
@@ -658,6 +673,7 @@
             function openMovieBrowser() {
                 browseMediaType = 'movie'
                 $('#add-media-folder-title').text('Add Movie Media Folder')
+                $('#folder-label').prop('selectedIndex', 0)
                 $.get('/browse', handleBrowser.bind(null, null))
             }
             function updatePage() {
@@ -677,10 +693,11 @@
                     })
                 }
                 if (currentFolder != 'None') {
+                    var folderLabel = $('#folder-label').children("option:selected").val()
                     if (browseMediaType == 'movie') {
-                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder), handleAddFolderResponse)
+                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel, handleAddFolderResponse)
                     } else {
-                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder), handleAddFolderResponse)
+                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel, handleAddFolderResponse)
                     }
                 } else {
                     $('#add-media-folder').hide()
@@ -689,6 +706,7 @@
             function openSeriesBrowser() {
                 browseMediaType = 'series'
                 $('#add-media-folder-title').text('Add Series Media Folder')
+                $('#folder-label').prop('selectedIndex', 0)
                 $.get('/browse', handleBrowser.bind(null, null))
             }
             function closeBrowser() {

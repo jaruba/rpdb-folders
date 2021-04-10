@@ -94,14 +94,20 @@ function folderNameToImdb(folderName, folderType, cb) {
 	})
 }
 
-function posterFromImdbId(imdbId) {
+function posterFromImdbId(imdbId, folderLabel) {
 	let posterType = settings.posterType
 	if (settings.customPosters[imdbId]) {
-		return settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
+		let customPoster = settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
+		if (folderLabel) {
+			if (customPoster.includes('?')) customPoster += '&'
+			else customPoster += '?'
+			customPoster += 'label=' + folderLabel
+		}
+		return customPoster
 	} else {
 		if (settings.textless)
 			posterType = posterType.replace('poster-', 'textless-')
-		return 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg'
+		return 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg' + (folderLabel ? '?label=' + folderLabel : '')
 	}
 }
 
@@ -114,6 +120,10 @@ const nameQueue = async.queue((task, cb) => {
 	}
 
 	console.log('Folders left in queue: ' + nameQueue.length())
+
+	const parentMediaFolder = path.resolve(task.folder, '..')
+
+	const folderLabel = settings.labels[parentMediaFolder]
 
 	const posterExists = fs.existsSync(path.join(task.folder, 'poster.jpg'))
 
@@ -157,7 +167,7 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = posterFromImdbId(imdbId)
+		const posterUrl = posterFromImdbId(imdbId, folderLabel)
 		needle.get(posterUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(task.folder, 'poster.jpg'), res.raw, (err) => {
@@ -322,11 +332,15 @@ function removeFromWatcher(folder) {
 	}
 }
 
-function addMediaFolder(type, folder) {
+function addMediaFolder(type, folder, label) {
 	const idx = settings.mediaFolders[type].indexOf(folder)
 	if (idx == -1) {
 		settings.mediaFolders[type].push(folder)
 		config.set('mediaFolders', settings.mediaFolders)
+		if (label && label != 'none') {
+			settings.labels[folder] = label
+			config.set('labels', settings.labels)
+		}
 		addToWatcher([folder])
 	}
 }
@@ -336,6 +350,10 @@ function removeMediaFolder(type, folder) {
 	if (idx !== -1) {
 		settings.mediaFolders[type].splice(idx, 1)
 		config.set('mediaFolders', settings.mediaFolders)
+		if (settings.labels[folder]) {
+			delete settings.labels[folder]
+			config.set('labels', settings.labels)
+		}
 		removeFromWatcher(folder)
 	}
 }
@@ -445,19 +463,19 @@ app.get('/removeSeriesFolder', (req, res) => {
 	removeFolderLogic(res, 'series', (req.query || {}).folder || '')
 })
 
-function addFolderLogic(res, type, folder) {
+function addFolderLogic(res, type, folder, label) {
 	if (folder)
-		addMediaFolder(type, folder)
+		addMediaFolder(type, folder, label)
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })
 }
 
 app.get('/addMovieFolder', (req, res) => {
-	addFolderLogic(res, 'movie', (req.query || {}).folder || '')
+	addFolderLogic(res, 'movie', (req.query || {}).folder || '', (req.query || {}).label || '')
 })
 
 app.get('/addSeriesFolder', (req, res) => {
-	addFolderLogic(res, 'series', (req.query || {}).folder || '')
+	addFolderLogic(res, 'series', (req.query || {}).folder || '', (req.query || {}).label || '')
 })
 
 app.get('/setApiKey', (req, res) => {
