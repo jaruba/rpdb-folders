@@ -14,6 +14,7 @@ const getPort = require('get-port')
 const config = require('./config')
 const browser = require('./browser')
 const searchStrings = require('./searchStrings')
+const fileHelper = require('./files')
 
 const tryThreeTimes = {}
 
@@ -34,10 +35,13 @@ function folderNameToImdb(folderName, folderType, cb) {
 		cb(settings.overwriteMatches[folderType][folderName])
 		return
 	}
+
 	if (settings.imdbCache[folderType][folderName]) {
 		cb(settings.imdbCache[folderType][folderName])
 		return
 	}
+
+	folderName = fileHelper.isVideo(folderName) ? fileHelper.removeExtension(folderName) : folderName
 
 	const obj = { type: folderType, providers: ['imdbFind'] }
 
@@ -247,8 +251,8 @@ nameQueue.drain(() => {
 	queueDisabled = false
 })
 
-const isDirectory = source => fs.lstatSync(source).isDirectory()
-const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory)
+const isDirectoryOrVideo = (withVideos, source) => { try { return fs.lstatSync(source).isDirectory() || (withVideos && fileHelper.isVideo(source)) } catch(e) { return false } }
+const getDirectories = (source, withVideos) => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos))
 
 let fullScanRunning = false
 
@@ -286,12 +290,9 @@ watcher.on('addDir', el => {
 	nameQueue.push({ name, folder: el, type, forced: false }) 
 })
 
-const videoTypes = ['mkv', 'mp4', 'avi']
-
 watcher.on('add', el => {
 	const name = el.split(path.sep).pop()
-	const ext = name.split('.').pop()
-	if (!videoTypes.includes(ext)) {
+	if (!fileHelper.isVideo(name)) {
 		return
 	}
 	let type
@@ -310,8 +311,8 @@ watcher.on('add', el => {
 		return
 	}
 	console.log(`File ${name} has been added to ${type}`)
-	const nameNoExt = name.replace(new RegExp('\.' + ext + '$'), '')
-	nameQueue.push({ name: nameNoExt, folder: path.dirname(el), type, forced: false, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
+	const nameNoExt = fileHelper.removeExtension(name)
+	nameQueue.push({ name, folder: path.dirname(el), type, forced: false, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
 })
 
 function shouldOverwrite(type) {
@@ -531,7 +532,7 @@ function changePosterForFolder(folder, imdbId, type) {
 			})
 			if (mediaFolders.length) {
 				let allFolders = []
-				mediaFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
+				mediaFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder, !!(type == 'movie'))) })
 
 				if (allFolders.length) {
 					const simplifiedFolder = folder.trim().toLowerCase()
@@ -540,7 +541,12 @@ function changePosterForFolder(folder, imdbId, type) {
 						const fldrName = fldr.split(path.sep).pop()
 						if (fldrName.trim().toLowerCase() == simplifiedFolder) {
 							folderMatch = fldrName
-							nameQueue.unshift({ name: fldrName, folder: fldr, type, forced: true })
+							if (fileHelper.isVideo(fldrName)) {
+								const nameNoExt = fileHelper.removeExtension(fldrName)
+								nameQueue.unshift({ name: fldrName, folder: path.dirname(fldr), type, forced: true, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
+							} else {
+								nameQueue.unshift({ name: fldrName, folder: fldr, type, forced: true })
+							}
 							return true
 						}
 					})
@@ -716,7 +722,7 @@ app.get('/searchStrings', async (req, res) => {
 		internalError()
 		return
 	}
-	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType])
+	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType], mediaType)
 	res.setHeader('Content-Type', 'application/json')
 	res.send(searchStringsResp)	
 })

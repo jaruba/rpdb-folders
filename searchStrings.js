@@ -5,10 +5,10 @@ const forbiddenChar = process.platform == 'linux' || isDocker() ? '/' : ':'
 
 const browser = require('./browser')
 
-module.exports = async (mediaFolders) => {
+module.exports = async (mediaFolders, mediaType) => {
 	let folders = []
 	for (let i = 0; mediaFolders[i]; i++) {
-		const dirScan = await browser(mediaFolders[i])
+		const dirScan = await browser(mediaFolders[i], !!(mediaType == 'movie'))
 		folders = folders.concat(dirScan || [])
 	}
 	return {
