@@ -41,6 +41,10 @@
 /*                direction: rtl; */
                 text-align: left;
                 margin-bottom: 20px;
+                cursor: pointer;
+            }
+            .current-folder:hover {
+                border: 1px solid rgba(0,120,231,0.3);
             }
             .dialog-title {
                 text-align: center;
@@ -210,7 +214,7 @@
             <h1 class="dialog-title" id="add-media-folder-title"></h1>
             <div style="text-align: center">
                 <div id="folder-label-note">If a label is chosen, it will be added to the top of all posters from this folder.<br/><br/><br/></div>
-                <div class="current-folder"></div>
+                <div class="current-folder" onclick="pasteMediaFolder()"></div>
                 <br/>
                 <form class="pure-form folder-label-form">
                     <label for="folder-label">Label&nbsp;</label>
@@ -231,6 +235,21 @@
                     </div>
                 </center>
 
+            </div>
+        </div>
+        <div id="paste-media-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title" id="paste-media-folder-title"></h1>
+            <div style="text-align: center">
+                Use this feature to manually enter a media folder location instead of browsing for it.
+                <br/><br>
+                <form class="pure-form pure-form-aligned" id="paste-media-form">
+                    <input type="text" id="paste-media-path" placeholder="Media Folder Location" />
+                </form>
+                <br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="addPasteMediaFolder()">Save Location</button>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="closePasteMediaFolder()">Close</button>
+                <br/><br/><br/>
             </div>
         </div>
         <div id="remove-media-folder" class="full-page-dialog" style="display: none">
@@ -652,6 +671,7 @@
                         return '<div class="folder-line add-line">' + (el.label ? (!path ? el.path + ' (' : '') + el.label + (!path ? ')' : '') : el.path) + '</div>'
                     }))
                     attachBrowseClickListeners()
+                    $('#paste-media-folder').hide()
                     $('#add-media-folder').show()
                 }
             }
@@ -675,6 +695,22 @@
                 $('#add-media-folder-title').text('Add Movie Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
                 $.get('/browse', handleBrowser.bind(null, null))
+            }
+            function pasteMediaFolder() {
+                $('#paste-media-folder-title').text('Add ' + capitalizeFirstLetter(browseMediaType) + ' Media Folder')
+                $('#paste-media-path').val('')
+                $('#add-media-folder').hide()
+                $('#paste-media-folder').show()
+                $('#paste-media-path').select()
+            }
+            function addPasteMediaFolder() {
+                $('.current-folder').text($('#paste-media-path').val())
+                var pastedPath = $('#paste-media-path').val()
+                $.get('/browse?folder=' + encodeURIComponent(pastedPath), handleBrowser.bind(null, pastedPath))
+            }
+            function closePasteMediaFolder() {
+                $('#paste-media-folder').hide()
+                $('#add-media-folder').show()
             }
             function updatePage() {
                 $.get('/getSettings', function(data) {
