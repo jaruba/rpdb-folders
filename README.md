@@ -2,7 +2,9 @@
 
 Monitors Media Folders and Adds Images with Ratings (poster.jpg / background.jpg) from the [RPDB API](https://ratingposterdb.com/).
 
-This is a cross-platform solution to adding Images with Ratings for Plex / Emby / Kodi / other media centers.
+**Now also supports movie files that do not have their own subfolders!** 
+
+This is a cross-platform solution to adding Images with Ratings for Plex / Emby / Jellyfin / Kodi / other media centers.
 
 See screenshots of [Rating Posters in Various Apps](https://ratingposterdb.com/#see-it-in-action) and [Examples of Various Supported Rating Posters](https://ratingposterdb.com/examples/).
 
