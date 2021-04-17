@@ -119,18 +119,22 @@ const nameQueue = async.queue((task, cb) => {
 		return
 	}
 
-	console.log('Folders left in queue: ' + nameQueue.length())
+	console.log('Items left in queue: ' + nameQueue.length())
 
-	const parentMediaFolder = path.resolve(task.folder, '..')
+	const parentMediaFolder = task.isFile ? task.folder : path.resolve(task.folder, '..')
 
 	const folderLabel = settings.labels[parentMediaFolder]
 
-	const posterExists = fs.existsSync(path.join(task.folder, 'poster.jpg'))
+	const posterName = task.posterName || 'poster.jpg'
+
+	const backdropName = task.backdropName || 'background.jpg'
+
+	const posterExists = fs.existsSync(path.join(task.folder, posterName))
 
 	let backdropExists = false
 
 	if (settings.backdrops) {
-		backdropExists = fs.existsSync(path.join(task.folder, 'background.jpg'))
+		backdropExists = fs.existsSync(path.join(task.folder, backdropName))
 	}
 
 	if (posterExists && !settings.backdrops) {
@@ -170,9 +174,9 @@ const nameQueue = async.queue((task, cb) => {
 		const posterUrl = posterFromImdbId(imdbId, folderLabel)
 		needle.get(posterUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
-				fs.writeFile(path.join(task.folder, 'poster.jpg'), res.raw, (err) => {
+				fs.writeFile(path.join(task.folder, posterName), res.raw, (err) => {
 					if (err) {
-						if (!tryThreeTimes.hasOwnObject(task.name))
+						if (!tryThreeTimes.hasOwnProperty(task.name))
 							tryThreeTimes[task.name] = 0
 						if (tryThreeTimes[task.name] < 3) {
 							tryThreeTimes[task.name]++
@@ -210,7 +214,7 @@ const nameQueue = async.queue((task, cb) => {
 		const backdropUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/backdrop-default/' + imdbId + '.jpg'
 		needle.get(backdropUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
-				fs.writeFile(path.join(task.folder, 'background.jpg'), res.raw, (err) => {
+				fs.writeFile(path.join(task.folder, backdropName), res.raw, (err) => {
 					if (err) {
 						console.log(`Warning: Could not download backdrop for ${task.name}, trying again in 4h`)
 					} else
@@ -280,6 +284,34 @@ watcher.on('addDir', el => {
 	const name = el.split(path.sep).pop()
 	console.log(`Directory ${name} has been added to ${type}`)
 	nameQueue.push({ name, folder: el, type, forced: false }) 
+})
+
+const videoTypes = ['mkv', 'mp4', 'avi']
+
+watcher.on('add', el => {
+	const name = el.split(path.sep).pop()
+	const ext = name.split('.').pop()
+	if (!videoTypes.includes(ext)) {
+		return
+	}
+	let type
+	for (const [folderType, folders] of Object.entries(settings.mediaFolders)) {
+		if (folders.includes(el))
+			return
+		if (!type)
+			folders.some(mediaFolder => {
+				if (el.startsWith(mediaFolder)) {
+					type = folderType
+					return true
+				}
+			})
+	}
+	if (type !== 'movie') {
+		return
+	}
+	console.log(`File ${name} has been added to ${type}`)
+	const nameNoExt = name.replace(new RegExp('\.' + ext + '$'), '')
+	nameQueue.push({ name: nameNoExt, folder: path.dirname(el), type, forced: false, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
 })
 
 function shouldOverwrite(type) {
