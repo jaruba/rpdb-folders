@@ -17,8 +17,6 @@ const searchStrings = require('./searchStrings')
 const fileHelper = require('./files')
 const stringHelper = require('./strings')
 
-const tryThreeTimes = {}
-
 let queueDisabled = false
 
 function folderNameToImdb(folderName, folderType, cb) {
@@ -176,17 +174,14 @@ const nameQueue = async.queue((task, cb) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(task.folder, posterName), res.raw, (err) => {
 					if (err) {
-						if (!tryThreeTimes.hasOwnProperty(task.name))
-							tryThreeTimes[task.name] = 0
-						if (tryThreeTimes[task.name] < 3) {
-							tryThreeTimes[task.name]++
-							console.log(`Warning: Could not download poster for ${task.name}, trying again in 4h`)
+						if (!task.retry) {
+							console.log(`Warning: Could not write poster to folder for ${task.name}, trying again in 4h`)
 							setTimeout(() => {
+								task.retry = true
 								nameQueue.push(task)
 							}, 4 * 60 * 60 * 1000)
 						} else {
-							delete tryThreeTimes[task.name]
-							console.log(`Warning: Could not download poster for ${task.name}, tried 3 times`)
+							console.log(`Warning: Could not write poster to folder for ${task.name}, tried twice`)
 						}
 					} else
 						console.log(`Poster for ${task.name} downloaded`)
