@@ -411,6 +411,11 @@
                     <label for="checkbox-radio-overwrite-two" class="pure-radio" style="display: inline-block">
                         <input type="radio" id="checkbox-radio-overwrite-two" name="overwriteRadios" value="overwrite-bimonthly" /> Bimonthly</label>
                 </form>
+                <br/><br/>
+                <b>Other Settings</b>
+                <br/><br/>
+                <label for="no-empty-folders" class="pure-checkbox" style="display: inline-block">
+                    <input type="checkbox" id="no-empty-folders" class="optionsCheckbox" value="notempty" /> Skip Empty Folders</label>
                 <br/><br/><br/><br/>
                 <b>Manual Scan Options</b>
                 <br/><br/>
@@ -560,6 +565,10 @@
                 if ($("#overwrite-option-two").is(':checked')) {
                   overwrite2years = 1;
                 }
+                var noEmptyFolders = 0
+                if ($("#no-empty-folders").is(':checked')) {
+                  noEmptyFolders = 1;
+                }
                 var backdrops = 0
                 if ($("#backdrops-option-one").is(':checked')) {
                   backdrops = 1;
@@ -568,7 +577,7 @@
                 if ($("#textless-option-one").is(':checked')) {
                   textless = 1;
                 }
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years, function(data) {});
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders, function(data) {});
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
@@ -585,6 +594,9 @@
                         }
                         if (data.overwrite2years) {
                             $("#overwrite-option-two").prop('checked', true)
+                        }
+                        if (data.noEmptyFolders) {
+                            $("#no-empty-folders").prop('checked', true)
                         }
                         if (data.backdrops) {
                             $("#backdrops-option-one").prop('checked', true)
@@ -637,6 +649,9 @@
                     updateSettings();
                 });
                 $("#overwrite-option-two").on('change', function() {
+                    updateSettings();
+                });
+                $("#no-empty-folders").on('change', function() {
                     updateSettings();
                 });
                 $("#backdrops-option-one").on('change', function() {

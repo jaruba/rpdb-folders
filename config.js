@@ -29,6 +29,7 @@ let map = {
     minOverwritePeriod: 29 * 24 * 60 * 60 * 1000, // 29d
     lastOverwrite: { movie: 0, series: 0 },
     overwriteLast2Years: false,
+    noPostersToEmptyFolders: false,
     overwriteMatches: { movie: {}, series: {} },
     imdbCache: { movie: {}, series: {} },
     mediaFolders: { movie: [], series: [] },

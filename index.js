@@ -169,6 +169,15 @@ const nameQueue = async.queue((task, cb) => {
 		}
 	}
 
+	if (settings.noPostersToEmptyFolders) {
+		const folderHasContents = getDirectories(targetFolder, true)
+		if (!(folderHasContents || []).length) {
+			console.log(`Skipping empty folder: ${task.name}`)
+			cb()
+			return
+		}
+	}
+
 	const posterExists = fs.existsSync(path.join(targetFolder, posterName))
 
 	let backdropExists = false
@@ -477,14 +486,20 @@ app.get('/setSettings', (req, res) => {
 		settings.lastOverwrite = { movie: Date.now(), series: Date.now() }
 		config.set('lastOverwrite', settings.lastOverwrite)
 	}
+	settings.overwrite = overwrite == 1 ? true : false
+	config.set('overwrite', settings.overwrite)
 	const overwrite2years = (req.query || {}).overwrite2years || false
 	const overwriteLast2Years = overwrite2years == 1 ? true : false
 	if (overwriteLast2Years !== settings.overwriteLast2Years) {
 		settings.overwriteLast2Years = overwriteLast2Years
 		config.set('overwriteLast2Years', settings.overwriteLast2Years)
 	}
-	settings.overwrite = overwrite == 1 ? true : false
-	config.set('overwrite', settings.overwrite)
+	const noEmptyFolders = (req.query || {}).noEmptyFolders || false
+	const noPostersToEmptyFolders = noEmptyFolders == 1 ? true : false
+	if (noPostersToEmptyFolders !== settings.noPostersToEmptyFolders) {
+		settings.noPostersToEmptyFolders = noPostersToEmptyFolders
+		config.set('noPostersToEmptyFolders', settings.noPostersToEmptyFolders)
+	}
 	const backdrops = (req.query || {}).backdrops || false
 	settings.backdrops = backdrops == 1 ? true : false
 	config.set('backdrops', settings.backdrops)
@@ -502,6 +517,7 @@ app.get('/getSettings', (req, res) => {
 		posterType: settings.posterType,
 		overwrite: settings.overwrite,
 		overwrite2years: settings.overwriteLast2Years,
+		noEmptyFolders: settings.noPostersToEmptyFolders,
 		backdrops: settings.backdrops,
 		textless: settings.textless,
 		minOverwritePeriod: settings.minOverwritePeriod,
