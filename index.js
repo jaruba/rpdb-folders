@@ -15,17 +15,11 @@ const config = require('./config')
 const browser = require('./browser')
 const searchStrings = require('./searchStrings')
 const fileHelper = require('./files')
+const stringHelper = require('./strings')
 
 const tryThreeTimes = {}
 
 let queueDisabled = false
-
-const specialSpaces = ['.','-','_']
-
-function shouldNotParseName(folderName) {
-	folderName = folderName || ''
-	return !!(folderName.includes(' ') || !specialSpaces.some(el => { return folderName.includes(el) }))
-}
 
 function folderNameToImdb(folderName, folderType, cb) {
 
@@ -41,7 +35,9 @@ function folderNameToImdb(folderName, folderType, cb) {
 		return
 	}
 
-	folderName = fileHelper.isVideo(folderName) ? fileHelper.removeExtension(folderName) : folderName
+	// clean up folderName:
+
+	const cleanFolderName = stringHelper.cleanFolderName(fileHelper.isVideo(folderName) ? fileHelper.removeExtension(folderName) : folderName)
 
 	const obj = { type: folderType, providers: ['imdbFind'] }
 
@@ -49,30 +45,30 @@ function folderNameToImdb(folderName, folderType, cb) {
 
 	// ends with year in parantheses:
 
-	const yearMatch1 = folderName.match(/ \((\d{4}|\d{4}\-\d{4})\)$/)
+	const yearMatch1 = cleanFolderName.match(/ \((\d{4}|\d{4}\-\d{4})\)$/)
 
 	if ((yearMatch1 || []).length > 1) {
 		obj.year = yearMatch1[1]
-		obj.name = folderName.replace(/ \((\d{4}|\d{4}\-\d{4})\)$/, '')
+		obj.name = cleanFolderName.replace(/ \((\d{4}|\d{4}\-\d{4})\)$/, '')
 	} else {
 
 		// ends with year without parantheses:
 
-		const yearMatch2 = folderName.match(/ (\d{4}|\d{4}\-\d{4})$/)
+		const yearMatch2 = cleanFolderName.match(/ (\d{4}|\d{4}\-\d{4})$/)
 		if ((yearMatch2 || []).length > 1) {
 			obj.year = yearMatch2[1]
-			obj.name = folderName.replace(/ (\d{4}|\d{4}\-\d{4})$/, '')
+			obj.name = cleanFolderName.replace(/ (\d{4}|\d{4}\-\d{4})$/, '')
 		} else {
 
-			const tnpParsed = tnp(folderName)
+			const tnpParsed = tnp(cleanFolderName)
 
 			if (tnpParsed.title) {
 				obj.name = tnpParsed.title
 				if (tnpParsed.year) {
 					obj.year = tnpParsed.year
-				} else if (obj.type == 'series' && shouldNotParseName(folderName)) {
+				} else if (obj.type == 'series' && stringHelper.shouldNotParseName(cleanFolderName)) {
 					// this is leads to a better match for series
-					obj.name = folderName
+					obj.name = cleanFolderName
 				}
 			}
 
@@ -80,7 +76,7 @@ function folderNameToImdb(folderName, folderType, cb) {
 	}
 
 	if (!obj.name)
-		obj.name = folderName.toLowerCase()
+		obj.name = cleanFolderName.toLowerCase()
 	else
 		obj.name = obj.name.toLowerCase()
 
