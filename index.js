@@ -127,12 +127,27 @@ const nameQueue = async.queue((task, cb) => {
 
 	const backdropName = task.backdropName || 'background.jpg'
 
-	const posterExists = fs.existsSync(path.join(task.folder, posterName))
+	let targetFolder = task.folder
+
+	if (task.type == 'movie') {
+		// handle strange case of concatenated folders
+		// - Movie Name (Year)
+		// - - Movie Name (Year)
+		// - - - Video File
+
+		// if only one item exists in the folder and that item is a folder itself, go one level down
+		const folderContents = getDirectories(targetFolder, true)
+		if ((folderContents || []).length == 1 && !fileHelper.isVideo(folderContents[0] || '')) {
+			targetFolder = folderContents[0]
+		}
+	}
+
+	const posterExists = fs.existsSync(path.join(targetFolder, posterName))
 
 	let backdropExists = false
 
 	if (settings.backdrops) {
-		backdropExists = fs.existsSync(path.join(task.folder, backdropName))
+		backdropExists = fs.existsSync(path.join(targetFolder, backdropName))
 	}
 
 	if (posterExists && !settings.backdrops) {
@@ -172,7 +187,7 @@ const nameQueue = async.queue((task, cb) => {
 		const posterUrl = posterFromImdbId(imdbId, folderLabel)
 		needle.get(posterUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
-				fs.writeFile(path.join(task.folder, posterName), res.raw, (err) => {
+				fs.writeFile(path.join(targetFolder, posterName), res.raw, (err) => {
 					if (err) {
 						if (!task.retry) {
 							console.log(`Warning: Could not write poster to folder for ${task.name}, trying again in 4h`)
@@ -209,7 +224,7 @@ const nameQueue = async.queue((task, cb) => {
 		const backdropUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/backdrop-default/' + imdbId + '.jpg'
 		needle.get(backdropUrl, (err, res) => {
 			if (!err && res.statusCode == 200) {
-				fs.writeFile(path.join(task.folder, backdropName), res.raw, (err) => {
+				fs.writeFile(path.join(targetFolder, backdropName), res.raw, (err) => {
 					if (err) {
 						console.log(`Warning: Could not download backdrop for ${task.name}, trying again in 4h`)
 					} else
