@@ -395,6 +395,9 @@
                 </div>
                 <label for="overwrite-option-one" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="overwrite-option-one" class="optionsCheckbox" value="overwrite" /> Overwrite Images</label>
+                <br/><br/>
+                <label for="overwrite-option-two" class="pure-checkbox" style="display: inline-block">
+                    <input type="checkbox" id="overwrite-option-two" class="optionsCheckbox" value="overwrite" /> Only Overwrite Items from the Last 2 Years</label>
                 <br/><br/><br/><br/>
                 <b>Overwrite Frequency</b><br/><br/>
                 <div>
@@ -553,6 +556,10 @@
                 if ($("#overwrite-option-one").is(':checked')) {
                   overwrite = 1;
                 }
+                var overwrite2years = 0
+                if ($("#overwrite-option-two").is(':checked')) {
+                  overwrite2years = 1;
+                }
                 var backdrops = 0
                 if ($("#backdrops-option-one").is(':checked')) {
                   backdrops = 1;
@@ -561,7 +568,7 @@
                 if ($("#textless-option-one").is(':checked')) {
                   textless = 1;
                 }
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod, function(data) {});
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years, function(data) {});
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
@@ -575,6 +582,9 @@
                         // load saved data
                         if (data.overwrite) {
                             $("#overwrite-option-one").prop('checked', true)
+                        }
+                        if (data.overwrite2years) {
+                            $("#overwrite-option-two").prop('checked', true)
                         }
                         if (data.backdrops) {
                             $("#backdrops-option-one").prop('checked', true)
@@ -624,6 +634,9 @@
                     updateSettings();
                 });
                 $("#overwrite-option-one").on('change', function() {
+                    updateSettings();
+                });
+                $("#overwrite-option-two").on('change', function() {
                     updateSettings();
                 });
                 $("#backdrops-option-one").on('change', function() {

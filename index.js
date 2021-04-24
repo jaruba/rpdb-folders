@@ -19,18 +19,30 @@ const stringHelper = require('./strings')
 
 let queueDisabled = false
 
-function folderNameToImdb(folderName, folderType, cb) {
-
-	folderName = folderName || ''
-
+function getCached(folderName, folderType) {
 	if (settings.overwriteMatches[folderType][folderName]) {
-		cb(settings.overwriteMatches[folderType][folderName])
-		return
+		return settings.overwriteMatches[folderType][folderName]
 	}
 
 	if (settings.imdbCache[folderType][folderName]) {
-		cb(settings.imdbCache[folderType][folderName])
-		return
+		return settings.imdbCache[folderType][folderName]
+	}
+}
+
+function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
+
+	folderName = folderName || ''
+
+	// we skip cache to ensure item is not from last 2 years
+	// if it is, we will check the cache again later on
+	const skipCache = !!(isForced && posterExists && settings.overwriteLast2Years)
+
+	if (!skipCache) {
+		const cached = getCached(folderName, folderType)
+		if (cached) {
+			cb(cached)
+			return
+		}
 	}
 
 	// clean up folderName:
@@ -81,6 +93,21 @@ function folderNameToImdb(folderName, folderType, cb) {
 	// "Marvel's ..." can be a special case...
 	if (obj.type == 'series' && obj.name.startsWith('marvel'))
 		obj.name = obj.name.replace(/^marvel ?'?s /,'')
+
+	if (skipCache && obj.year) {
+		const currentYear = new Date().getFullYear()
+		if (obj.year != currentYear || obj.year != currentYear -1) {
+			// item not from last 2 years
+			cb(false)
+			return
+		} else {
+			const cached = getCached(folderName, folderType)
+			if (cached) {
+				cb(cached)
+				return
+			}
+		}
+	}
 
 	nameToImdb(obj, (err, res, inf) => {
 		if ((res || '').startsWith('tt')) {
@@ -247,7 +274,7 @@ const nameQueue = async.queue((task, cb) => {
 			if (settings.backdrops) // end again
 				endIt()
 		}
-	})
+	}, task.forced, posterExists)
 
 }, 1)
 
@@ -450,6 +477,12 @@ app.get('/setSettings', (req, res) => {
 		settings.lastOverwrite = { movie: Date.now(), series: Date.now() }
 		config.set('lastOverwrite', settings.lastOverwrite)
 	}
+	const overwrite2years = (req.query || {}).overwrite2years || false
+	const overwriteLast2Years = overwrite2years == 1 ? true : false
+	if (overwriteLast2Years !== settings.overwriteLast2Years) {
+		settings.overwriteLast2Years = overwriteLast2Years
+		config.set('overwriteLast2Years', settings.overwriteLast2Years)
+	}
 	settings.overwrite = overwrite == 1 ? true : false
 	config.set('overwrite', settings.overwrite)
 	const backdrops = (req.query || {}).backdrops || false
@@ -468,6 +501,7 @@ app.get('/getSettings', (req, res) => {
 		success: true,
 		posterType: settings.posterType,
 		overwrite: settings.overwrite,
+		overwrite2years: settings.overwriteLast2Years,
 		backdrops: settings.backdrops,
 		textless: settings.textless,
 		minOverwritePeriod: settings.minOverwritePeriod,
