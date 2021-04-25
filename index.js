@@ -1,7 +1,6 @@
 
 const express = require('express')
 const app = express()
-const nameToImdb = require('name-to-imdb')
 const needle = require('needle')
 const async = require('async')
 const chokidar = require('chokidar')
@@ -16,6 +15,9 @@ const browser = require('./browser')
 const searchStrings = require('./searchStrings')
 const fileHelper = require('./files')
 const stringHelper = require('./strings')
+const imdbMatching = require('./matching/imdb')
+const tmdbMatching = require('./matching/tmdb')
+const tvdbMatching = require('./matching/tvdb')
 
 let queueDisabled = false
 
@@ -70,15 +72,24 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 			obj.name = cleanFolderName.replace(/ (\d{4}|\d{4}\-\d{4})$/, '')
 		} else {
 
-			const tnpParsed = tnp(cleanFolderName)
+			// ends with year in brackets:
 
-			if (tnpParsed.title) {
-				obj.name = tnpParsed.title
-				if (tnpParsed.year) {
-					obj.year = tnpParsed.year
-				} else if (obj.type == 'series' && stringHelper.shouldNotParseName(cleanFolderName)) {
-					// this is leads to a better match for series
-					obj.name = cleanFolderName
+			const yearMatch2 = cleanFolderName.match(/ \[(\d{4}|\d{4}\-\d{4})\]$/)
+			if ((yearMatch2 || []).length > 1) {
+				obj.year = yearMatch2[1]
+				obj.name = cleanFolderName.replace(/ \[(\d{4}|\d{4}\-\d{4})\]$/, '')
+			} else {
+				const tnpParsed = tnp(cleanFolderName)
+
+				if (tnpParsed.title) {
+					obj.name = tnpParsed.title
+					if (tnpParsed.year) {
+						obj.year = tnpParsed.year
+					} else if (stringHelper.shouldNotParseName(cleanFolderName)) {
+						// this is leads to a better match for series
+						// possibly for movies too
+						obj.name = cleanFolderName
+					}
 				}
 			}
 
@@ -108,13 +119,19 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 			}
 		}
 	}
-
-	nameToImdb(obj, (err, res, inf) => {
-		if ((res || '').startsWith('tt')) {
+	imdbMatching.folderNameToImdb(obj, (err, res, inf) => {
+		if (res) {
+			console.log('Matched ' + folderName + ' by IMDB Search')
 			settings.imdbCache[folderType][folderName] = res
 			cb(res)
 		} else {
-			cb(false)
+			tmdbMatching.folderNameFromTMDBtoImdb(obj, res => {
+				if ((res || '').startsWith('tt')) {
+					console.log('Matched ' + folderName + ' by TMDB Search')
+					settings.imdbCache[folderType][folderName] = res
+					cb(res)
+				} else cb(false)
+			})
 		}
 	})
 }
@@ -246,6 +263,8 @@ const nameQueue = async.queue((task, cb) => {
 					// - API key is invalid / disabled
 					console.log(res.body)
 					queueDisabled = true
+				} else {
+					console.log('No poster available for ' + task.name)
 				}
 				endIt()
 			}
@@ -262,7 +281,7 @@ const nameQueue = async.queue((task, cb) => {
 			if (!err && res.statusCode == 200) {
 				fs.writeFile(path.join(targetFolder, backdropName), res.raw, (err) => {
 					if (err) {
-						console.log(`Warning: Could not download backdrop for ${task.name}, trying again in 4h`)
+						console.log(`Warning: Could not write backdrop to folder for ${task.name}`)
 					} else
 						console.log(`Backdrop for ${task.name} downloaded`)
 					endIt()
@@ -273,8 +292,8 @@ const nameQueue = async.queue((task, cb) => {
 		})
 	}
 
-	folderNameToImdb(task.name, task.type, imdbId => {
-		if (imdbId) {
+	function getImages(imdbId) {
+		if ((imdbId || '').startsWith('tt')) {
 			getPoster(imdbId)
 			if (settings.backdrops)
 				getBackdrop(imdbId)
@@ -283,7 +302,47 @@ const nameQueue = async.queue((task, cb) => {
 			if (settings.backdrops) // end again
 				endIt()
 		}
-	}, task.forced, posterExists)
+	}
+
+	function matchBySearch() {
+		folderNameToImdb(task.name, task.type, getImages, task.forced, posterExists)
+	}
+
+	// check to see if folder name already contains an id
+
+	const imdbIdInFolderName = imdbMatching.idInFolder(task.name)
+
+	if (imdbIdInFolderName) {
+		console.log('Matched ' + task.name + ' by IMDB ID in folder name')
+		getImages(imdbIdInFolderName)
+	} else {
+		const tmdbIdInFolderName = tmdbMatching.idInFolder(task.name)
+		if (tmdbIdInFolderName) {
+			tmdbMatching.tmdbToImdb(tmdbIdInFolderName, task.type == 'movie' ? 'movie' : 'tv', imdbId => {
+				if (imdbId) {
+					console.log('Matched ' + task.name + ' by TMDB ID in folder name')
+					getImages(imdbId)
+				} else {
+					matchBySearch()
+				}
+			})
+		} else {
+			const tvdbIdInFolderName = tvdbMatching.idInFolder(task.name)
+			if (tvdbIdInFolderName && task.type == 'series') {
+				// only series supports converting to imdb id
+				tvdbMatching.tvdbToImdb(tvdbIdInFolderName, imdbId => {
+					if (imdbId) {
+						console.log('Matched ' + task.name + ' by TVDB ID in folder name')
+						getImages(imdbId)
+					} else {
+						matchBySearch()
+					}
+				})
+			} else {
+				matchBySearch()
+			}
+		}
+	}
 
 }, 1)
 

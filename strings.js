@@ -6,7 +6,10 @@ const specialSpacesAtEnd = new RegExp('[' + specialSpaces.join('') + ']$')
 module.exports = {
 	shouldNotParseName: folderName => {
 		folderName = folderName || ''
-		return !!(folderName.includes(' ') || !specialSpaces.some(el => { return folderName.includes(el) }))
+		const countSpaces = folderName.split(' ').length-1
+		const specialChars = []
+		specialSpaces.forEach(el => { specialChars.push(folderName.split(el).length -1) })
+		return !specialChars.some(el => { return !!(el > countSpaces) })
 	},
 	cleanFolderName: folderName => {
 
@@ -28,5 +31,8 @@ module.exports = {
 
 		return folderName.trim()
 
-	}
+	},
+	sanitizeName: name => {
+		return name.replace(/[^a-zA-Z0-9 ]/g, '').toLowerCase().replace('the ','')
+	},
 }
