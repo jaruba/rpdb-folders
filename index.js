@@ -119,21 +119,60 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 			}
 		}
 	}
-	imdbMatching.folderNameToImdb(obj, (err, res, inf) => {
-		if (res) {
-			console.log('Matched ' + folderName + ' by IMDB Search')
-			settings.imdbCache[folderType][folderName] = res
-			cb(res)
-		} else {
-			tmdbMatching.folderNameFromTMDBtoImdb(obj, res => {
-				if ((res || '').startsWith('tt')) {
-					console.log('Matched ' + folderName + ' by TMDB Search')
-					settings.imdbCache[folderType][folderName] = res
-					cb(res)
-				} else cb(false)
-			})
-		}
-	})
+	if (settings.scanOrder == 'tmdb-imdb') {
+		tmdbMatching.folderNameFromTMDBtoImdb(obj, res => {
+			if ((res || '').startsWith('tt')) {
+				console.log('Matched ' + folderName + ' by TMDB Search')
+				settings.imdbCache[folderType][folderName] = res
+				cb(res)
+			} else {
+				imdbMatching.folderNameToImdb(obj, res => {
+					if (res) {
+						console.log('Matched ' + folderName + ' by IMDB Search')
+						settings.imdbCache[folderType][folderName] = res
+						cb(res)
+					} else cb(false)
+				})
+			}
+		})
+	} else if (settings.scanOrder == 'imdb') {
+		imdbMatching.folderNameToImdb(obj, res => {
+			if (res) {
+				console.log('Matched ' + folderName + ' by IMDB Search')
+				settings.imdbCache[folderType][folderName] = res
+				cb(res)
+			} else {
+				cb(false)
+			}
+		})
+	} else if (settings.scanOrder == 'tmdb') {
+		tmdbMatching.folderNameFromTMDBtoImdb(obj, res => {
+			if ((res || '').startsWith('tt')) {
+				console.log('Matched ' + folderName + ' by TMDB Search')
+				settings.imdbCache[folderType][folderName] = res
+				cb(res)
+			} else {
+				cb(false)
+			}
+		})
+	} else {
+		// 'imdb-tmdb'
+		imdbMatching.folderNameToImdb(obj, res => {
+			if (res) {
+				console.log('Matched ' + folderName + ' by IMDB Search')
+				settings.imdbCache[folderType][folderName] = res
+				cb(res)
+			} else {
+				tmdbMatching.folderNameFromTMDBtoImdb(obj, res => {
+					if ((res || '').startsWith('tt')) {
+						console.log('Matched ' + folderName + ' by TMDB Search')
+						settings.imdbCache[folderType][folderName] = res
+						cb(res)
+					} else cb(false)
+				})
+			}
+		})
+	}
 }
 
 function posterFromImdbId(imdbId, folderLabel) {
@@ -298,6 +337,7 @@ const nameQueue = async.queue((task, cb) => {
 			if (settings.backdrops)
 				getBackdrop(imdbId)
 		} else {
+			console.log('Could not match ' + task.name)
 			endIt()
 			if (settings.backdrops) // end again
 				endIt()
@@ -565,6 +605,9 @@ app.get('/setSettings', (req, res) => {
 	const textless = (req.query || {}).textless || false
 	settings.textless = textless == 1 ? true : false
 	config.set('textless', settings.textless)
+	const scanOrder = (req.query || {}).scanOrder || false
+	settings.scanOrder = scanOrder || settings.scanOrder
+	config.set('scanOrder', settings.scanOrder)
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })	
 })
@@ -584,6 +627,7 @@ app.get('/getSettings', (req, res) => {
 		seriesFolders: settings.mediaFolders.series,
 		historyCount: Object.keys(settings.imdbCache.movie || []).length + Object.keys(settings.imdbCache.series || []).length,
 		apiKeyPrefix: settings.apiKey ? settings.apiKey.substr(0, 3) : false,
+		scanOrder: settings.scanOrder,
 	})
 })
 

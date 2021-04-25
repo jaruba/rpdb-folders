@@ -40,6 +40,7 @@ let map = {
     customPosters: {},
     textless: false,
     labels: {},
+    scanOrder: 'imdb-tmdb',
 }
 
 function loadUserConfig(err, obj) {

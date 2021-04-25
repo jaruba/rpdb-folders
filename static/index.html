@@ -412,8 +412,27 @@
                         <input type="radio" id="checkbox-radio-overwrite-two" name="overwriteRadios" value="overwrite-bimonthly" /> Bimonthly</label>
                 </form>
                 <br/><br/>
-                <b>Other Settings</b>
+                <b>Scan Order</b><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Which internal scanners should be used and in which order.</i>
+                    <br/><br/>
+                </div>
+                <form class="pure-form pure-form-aligned" id="scan-order-opts-form">
+                    <label for="checkbox-radio-scan-order-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-one" name="scanOrderRadios" value="imdb-tmdb" checked="" /> IMDB > TMDB</label>
+                    &nbsp;&nbsp;
+                    <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="tmdb-imdb" /> TMDB > IMDB</label>
+                    <br/>
+                    <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="imdb" /> IMDB Only</label>
+                    &nbsp;&nbsp;
+                    <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="tmdb" /> TMDB Only</label>
+                </form>
                 <br/><br/>
+                <b>Other Settings</b>
+                <br/><br/>           
                 <label for="no-empty-folders" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="no-empty-folders" class="optionsCheckbox" value="notempty" /> Skip Folders that do not Include Video Files</label>
                 <br/><br/><br/><br/>
@@ -577,7 +596,8 @@
                 if ($("#textless-option-one").is(':checked')) {
                   textless = 1;
                 }
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders, function(data) {});
+                var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder, function(data) {});
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
@@ -622,6 +642,15 @@
                             }
                             $('input[name=overwriteRadios]', '#overwrite-opts-form').each((ij,el)=> {
                                 if ($(el).val() == overwritePeriod) {
+                                    $(el).prop('checked', true)
+                                } else {
+                                    $(el).prop('checked', false)
+                                }
+                            })
+                        }
+                        if (data.scanOrder) {
+                            $('input[name=scanOrderRadios]', '#scan-order-opts-form').each((ij,el)=> {
+                                if ($(el).val() == data.scanOrder) {
                                     $(el).prop('checked', true)
                                 } else {
                                     $(el).prop('checked', false)
