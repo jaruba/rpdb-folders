@@ -436,6 +436,10 @@
                 <label for="no-empty-folders" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="no-empty-folders" class="optionsCheckbox" value="notempty" /> Skip Folders that do not Include Video Files</label>
                 <br/><br/><br/><br/>
+                <b>Scanner Status</b>
+                <br/><br/>
+                <div id="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
+                <br/><br/><br/><br/>
                 <b>Manual Scan Options</b>
                 <br/><br/>
                 <div>
@@ -1036,6 +1040,7 @@
                         $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
                         var dt = new Date(parseInt(data.lastFullUpdate))
                         $('#full-scan-msg').html('Last full scan started:<br/><br/>' + dt.toLocaleString())
+                        $('#scan-status').text(data.scanItems ? 'Scanning (' + data.scanItems + ' items in queue)' : 'Idle, not scanning')
                     }
                 });
             }

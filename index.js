@@ -818,6 +818,7 @@ app.get('/pollData', (req, res) => {
 		success: true,
 		lastFullUpdate,
 		historyCount: Object.keys(settings.imdbCache.movie || []).length + Object.keys(settings.imdbCache.series || []).length,
+		scanItems: nameQueue.length() || 0,
 	})
 })
 
