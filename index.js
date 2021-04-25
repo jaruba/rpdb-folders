@@ -26,7 +26,7 @@ function getCached(folderName, folderType) {
 		return settings.overwriteMatches[folderType][folderName]
 	}
 
-	if (settings.imdbCache[folderType][folderName]) {
+	if (settings.cacheMatches && settings.imdbCache[folderType][folderName]) {
 		return settings.imdbCache[folderType][folderName]
 	}
 }
@@ -599,6 +599,12 @@ app.get('/setSettings', (req, res) => {
 		settings.noPostersToEmptyFolders = noPostersToEmptyFolders
 		config.set('noPostersToEmptyFolders', settings.noPostersToEmptyFolders)
 	}
+	const shouldCacheMatches = (req.query || {}).cacheMatches || false
+	const cacheMatches = shouldCacheMatches == 1 ? true : false
+	if (cacheMatches !== settings.cacheMatches) {
+		settings.cacheMatches = cacheMatches
+		config.set('cacheMatches', settings.cacheMatches)
+	}
 	const backdrops = (req.query || {}).backdrops || false
 	settings.backdrops = backdrops == 1 ? true : false
 	config.set('backdrops', settings.backdrops)
@@ -628,6 +634,7 @@ app.get('/getSettings', (req, res) => {
 		historyCount: Object.keys(settings.imdbCache.movie || []).length + Object.keys(settings.imdbCache.series || []).length,
 		apiKeyPrefix: settings.apiKey ? settings.apiKey.substr(0, 3) : false,
 		scanOrder: settings.scanOrder,
+		cacheMatches: settings.cacheMatches,
 	})
 })
 

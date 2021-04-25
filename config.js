@@ -41,6 +41,7 @@ let map = {
     textless: false,
     labels: {},
     scanOrder: 'imdb-tmdb',
+    cacheMatches: true,
 }
 
 function loadUserConfig(err, obj) {

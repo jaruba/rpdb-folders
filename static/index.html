@@ -432,9 +432,12 @@
                 </form>
                 <br/><br/>
                 <b>Other Settings</b>
-                <br/><br/>           
+                <br/><br/>
                 <label for="no-empty-folders" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="no-empty-folders" class="optionsCheckbox" value="notempty" /> Skip Folders that do not Include Video Files</label>
+                <br/><br/>
+                <label for="cache-matches" class="pure-checkbox" style="display: inline-block">
+                    <input type="checkbox" id="cache-matches" class="optionsCheckbox" value="cachedmatch" checked="" /> Cache Previous Successful Matches</label>
                 <br/><br/><br/><br/>
                 <b>Scanner Status</b>
                 <br/><br/>
@@ -592,6 +595,10 @@
                 if ($("#no-empty-folders").is(':checked')) {
                   noEmptyFolders = 1;
                 }
+                var cacheMatches = 0
+                if ($("#cache-matches").is(':checked')) {
+                  cacheMatches = 1;
+                }
                 var backdrops = 0
                 if ($("#backdrops-option-one").is(':checked')) {
                   backdrops = 1;
@@ -601,7 +608,7 @@
                   textless = 1;
                 }
                 var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder, function(data) {});
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches, function(data) {});
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
@@ -621,6 +628,9 @@
                         }
                         if (data.noEmptyFolders) {
                             $("#no-empty-folders").prop('checked', true)
+                        }
+                        if (!data.cacheMatches) {
+                            $("#cache-matches").prop('checked', false)
                         }
                         if (data.backdrops) {
                             $("#backdrops-option-one").prop('checked', true)
@@ -685,6 +695,9 @@
                     updateSettings();
                 });
                 $("#no-empty-folders").on('change', function() {
+                    updateSettings();
+                });
+                $("#cache-matches").on('change', function() {
                     updateSettings();
                 });
                 $("#backdrops-option-one").on('change', function() {
