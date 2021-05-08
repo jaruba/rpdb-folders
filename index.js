@@ -278,7 +278,7 @@ const nameQueue = async.queue((task, cb) => {
 		}
 		const posterUrl = posterFromImdbId(imdbId, folderLabel)
 		needle.get(posterUrl, (err, res) => {
-			if (!err && res.statusCode == 200) {
+			if (!err && (res || {}).statusCode == 200) {
 				fs.writeFile(path.join(targetFolder, posterName), res.raw, (err) => {
 					if (err) {
 						if (!task.retry) {
@@ -295,7 +295,7 @@ const nameQueue = async.queue((task, cb) => {
 					endIt()
 				})
 			} else {
-				if (res.statusCode == 403) {
+				if ((res || {}).statusCode == 403) {
 					// we will purge the queue, this can only happen if:
 					// - API request limit is reached
 					// - requests are done for an unsupported poster type
@@ -317,7 +317,7 @@ const nameQueue = async.queue((task, cb) => {
 		}
 		const backdropUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/backdrop-default/' + imdbId + '.jpg'
 		needle.get(backdropUrl, (err, res) => {
-			if (!err && res.statusCode == 200) {
+			if (!err && (res || {}).statusCode == 200) {
 				fs.writeFile(path.join(targetFolder, backdropName), res.raw, (err) => {
 					if (err) {
 						console.log(`Warning: Could not write backdrop to folder for ${task.name}`)
@@ -562,7 +562,7 @@ function init() {
 function validateApiKey() {
 	return new Promise((resolve, reject) => {
 		needle.get('https://api.ratingposterdb.com/' + settings.apiKey + '/isValid', (err, resp, body) => {
-			if (!err && resp.statusCode == 200) {
+			if (!err && (resp || {}).statusCode == 200) {
 				init()
 				resolve()
 			} else {
@@ -948,7 +948,7 @@ app.get('/poster-choices', (req, res) => {
 		if (imdbId) {
 			const tmdbType = mediaType == 'movie' ? mediaType : 'tv'
 			needle.get('https://api.themoviedb.org/3/find/'+imdbId+'?api_key='+tmdbKey+'&language=en-US&external_source=imdb_id', (err, resp, body) => {
-				if (!err && resp.statusCode == 200 && (((body || {})[tmdbType + '_results'] || [])[0] || {}).id) {
+				if (!err && (resp || {}).statusCode == 200 && (((body || {})[tmdbType + '_results'] || [])[0] || {}).id) {
 					const tmdbId = body[tmdbType + '_results'][0].id
 					needle.get('https://api.themoviedb.org/3/'+tmdbType+'/'+tmdbId+'/images?api_key='+tmdbKey, (err, resp, body) => {
 						if (((body || {}).posters || []).length) {

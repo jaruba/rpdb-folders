@@ -6,7 +6,7 @@ const tmdbKey = require('../tmdbKey').key
 module.exports = {
 	tvdbToImdb: (tvdbId, cb) => {
 		needle.get('https://api.themoviedb.org/3/find/'+tvdbId+'?api_key='+tmdbKey+'&language=en-US&external_source=tvdb_id', (err, resp, body) => {
-			if (!err && resp.statusCode == 200 && (((body || {})['tv_results'] || [])[0] || {}).id) {
+			if (!err && (resp || {}).statusCode == 200 && (((body || {})['tv_results'] || [])[0] || {}).id) {
 				tmdbMatching.tmdbToImdb(body['tv_results'][0].id, 'tv', cb)
 			} else {
 				cb(false)
