@@ -46,12 +46,12 @@ module.exports = {
 		folderName = folderName || ''
 		folderName = folderName.toLowerCase()
 		// tmdb id in curly brackets
-		const tmdbIdMatches1 = folderName.match(/\s?\{tmdb\-([0-9]+)\}/)
+		const tmdbIdMatches1 = folderName.match(/\s?\{tmdb[\-\:\=]([0-9]+)\}/)
 		if ((tmdbIdMatches1 || []).length == 2) {
 			return tmdbIdMatches1[1]
 		} else {
 			// tmdb id in brackets
-			const tmdbIdMatches2 = folderName.match(/\s?\[tmdb\-([0-9]+)\]/)
+			const tmdbIdMatches2 = folderName.match(/\s?\[tmdb[\-\:\=]([0-9]+)\]/)
 			if ((tmdbIdMatches2 || []).length == 2) {
 				return tmdbIdMatches2[1]
 			}

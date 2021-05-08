@@ -17,12 +17,12 @@ module.exports = {
 		folderName = folderName || ''
 		folderName = folderName.toLowerCase()
 		// tvdb id in curly brackets
-		const tvdbIdMatches1 = folderName.match(/\s?\{tvdb\-([0-9]+)\}/)
+		const tvdbIdMatches1 = folderName.match(/\s?\{tvdb[\-\:\=]([0-9]+)\}/)
 		if ((tvdbIdMatches1 || []).length == 2) {
 			return tvdbIdMatches1[1]
 		} else {
 			// tvdb id in brackets
-			const tvdbIdMatches2 = folderName.match(/\s?\[tvdb\-([0-9]+)\]/)
+			const tvdbIdMatches2 = folderName.match(/\s?\[tvdb[\-\:\=]([0-9]+)\]/)
 			if ((tvdbIdMatches2 || []).length == 2) {
 				return tvdbIdMatches2[1]
 			}
