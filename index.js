@@ -21,14 +21,27 @@ const tvdbMatching = require('./matching/tvdb')
 
 let queueDisabled = false
 
-function getCached(folderName, folderType) {
+const idToYearCache = {}
+
+function getCached(folderName, folderType, forced) {
 	if (settings.overwriteMatches[folderType][folderName]) {
 		return settings.overwriteMatches[folderType][folderName]
 	}
 
-	if (settings.cacheMatches && settings.imdbCache[folderType][folderName]) {
+	const shouldUseCache = forced || settings.cacheMatches
+
+	if (shouldUseCache && settings.imdbCache[folderType][folderName]) {
 		return settings.imdbCache[folderType][folderName]
 	}
+}
+
+function within2Years(thisYear, currentYear) {
+	return !!(thisYear && thisYear >= currentYear -1 && thisYear <= currentYear +1)
+}
+
+function saveYear(res, thisYear) {
+	if (settings.overwriteLast2Years && res && thisYear)
+		idToYearCache[res] = thisYear
 }
 
 function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
@@ -105,18 +118,19 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 	if (obj.type == 'series' && obj.name.startsWith('marvel'))
 		obj.name = obj.name.replace(/^marvel ?'?s /,'')
 
-	if (skipCache && obj.year) {
+	if (skipCache) {
+		// figure out the year of the media
 		const currentYear = new Date().getFullYear()
-		if (obj.year != currentYear || obj.year != currentYear -1) {
-			// item not from last 2 years
-			cb(false)
-			return
-		} else {
-			const cached = getCached(folderName, folderType)
-			if (cached) {
+		const cached = getCached(folderName, folderType, true)
+		if (cached) {
+			if (within2Years(obj.year, currentYear)) {
 				cb(cached)
-				return
+			} else if (!obj.year) {
+				cb(cached)
+			} else {
+				cb(false)
 			}
+			return
 		}
 	}
 	if (settings.scanOrder == 'tmdb-imdb') {
@@ -126,8 +140,9 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 				settings.imdbCache[folderType][folderName] = res
 				cb(res)
 			} else {
-				imdbMatching.folderNameToImdb(obj, res => {
+				imdbMatching.folderNameToImdb(obj, (res, inf) => {
 					if (res) {
+						saveYear(res, ((inf || {}).meta || {}).year)
 						console.log('Matched ' + folderName + ' by IMDB Search')
 						settings.imdbCache[folderType][folderName] = res
 						cb(res)
@@ -136,8 +151,9 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 			}
 		})
 	} else if (settings.scanOrder == 'imdb') {
-		imdbMatching.folderNameToImdb(obj, res => {
+		imdbMatching.folderNameToImdb(obj, (res, inf) => {
 			if (res) {
+				saveYear(res, ((inf || {}).meta || {}).year)
 				console.log('Matched ' + folderName + ' by IMDB Search')
 				settings.imdbCache[folderType][folderName] = res
 				cb(res)
@@ -157,8 +173,9 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
 		})
 	} else {
 		// 'imdb-tmdb'
-		imdbMatching.folderNameToImdb(obj, res => {
+		imdbMatching.folderNameToImdb(obj, (res, inf) => {
 			if (res) {
+				saveYear(res, ((inf || {}).meta || {}).year)
 				console.log('Matched ' + folderName + ' by IMDB Search')
 				settings.imdbCache[folderType][folderName] = res
 				cb(res)
@@ -332,15 +349,44 @@ const nameQueue = async.queue((task, cb) => {
 	}
 
 	function getImages(imdbId) {
-		if ((imdbId || '').startsWith('tt')) {
+		const checkWithin2Years = !!(task.forced && posterExists && settings.overwriteLast2Years)
+		function retrievePosters() {
 			getPoster(imdbId)
 			if (settings.backdrops)
 				getBackdrop(imdbId)
-		} else {
-			console.log('Could not match ' + task.name)
+		}
+		function failPosters() {
+			if (imdbId && checkWithin2Years)
+				console.log('Not within last 2 years, skipping: ' + task.name)
+			else
+				console.log('Could not match ' + task.name)
 			endIt()
 			if (settings.backdrops) // end again
 				endIt()
+		}
+		if ((imdbId || '').startsWith('tt')) {
+			if (!checkWithin2Years) {
+				retrievePosters()
+			} else {
+				const currentYear = new Date().getFullYear()
+				if (idToYearCache[imdbId]) {
+					if (within2Years(idToYearCache[imdbId], currentYear))
+						retrievePosters()
+					else
+						failPosters()
+				} else {
+					imdbMatching.folderNameToImdb({ name: imdbId, type: task.type, providers: ['imdbFind'] }, (res, inf) => {
+						if (res && res == imdbId && within2Years(((inf || {}).meta || {}).year, currentYear)) {
+							saveYear(imdbId, inf.meta.year)
+							retrievePosters()
+						} else {
+							failPosters()
+						}
+					})
+				}
+			}
+		} else {
+			failPosters()
 		}
 	}
 

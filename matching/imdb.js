@@ -4,7 +4,7 @@ module.exports = {
 	folderNameToImdb: (obj, cb) => {
 		nameToImdb(obj, (err, res, inf) => {
 			if ((res || '').startsWith('tt')) {
-				cb(res)
+				cb(res, inf)
 			} else {
 				cb(false)
 			}
