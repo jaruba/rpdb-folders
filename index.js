@@ -44,13 +44,13 @@ function saveYear(res, thisYear) {
 		idToYearCache[res] = thisYear
 }
 
-function folderNameToImdb(folderName, folderType, cb, isForced, posterExists) {
+function folderNameToImdb(folderName, folderType, cb, isForced, posterExists, avoidYearMatch) {
 
 	folderName = folderName || ''
 
 	// we skip cache to ensure item is not from last 2 years
 	// if it is, we will check the cache again later on
-	const skipCache = !!(isForced && posterExists && settings.overwriteLast2Years)
+	const skipCache = !!(!avoidYearMatch && isForced && posterExists && settings.overwriteLast2Years)
 
 	if (!skipCache) {
 		const cached = getCached(folderName, folderType)
@@ -349,14 +349,14 @@ const nameQueue = async.queue((task, cb) => {
 	}
 
 	function getImages(imdbId) {
-		const checkWithin2Years = !!(task.forced && posterExists && settings.overwriteLast2Years)
+		const checkWithin2Years = !!(!task.avoidYearMatch && task.forced && posterExists && settings.overwriteLast2Years)
 		function retrievePosters() {
 			getPoster(imdbId)
 			if (settings.backdrops)
 				getBackdrop(imdbId)
 		}
 		function failPosters() {
-			if (imdbId && checkWithin2Years)
+			if (checkWithin2Years)
 				console.log('Not within last 2 years, skipping: ' + task.name)
 			else
 				console.log('Could not match ' + task.name)
@@ -391,7 +391,7 @@ const nameQueue = async.queue((task, cb) => {
 	}
 
 	function matchBySearch() {
-		folderNameToImdb(task.name, task.type, getImages, task.forced, posterExists)
+		folderNameToImdb(task.name, task.type, getImages, task.forced, posterExists, task.avoidYearMatch)
 	}
 
 	// check to see if folder name already contains an id
@@ -789,9 +789,9 @@ function changePosterForFolder(folder, imdbId, type) {
 							folderMatch = fldrName
 							if (fileHelper.isVideo(fldrName)) {
 								const nameNoExt = fileHelper.removeExtension(fldrName)
-								nameQueue.unshift({ name: fldrName, folder: path.dirname(fldr), type, forced: true, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
+								nameQueue.unshift({ name: fldrName, folder: path.dirname(fldr), type, forced: true, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg', avoidYearMatch: true }) 
 							} else {
-								nameQueue.unshift({ name: fldrName, folder: fldr, type, forced: true })
+								nameQueue.unshift({ name: fldrName, folder: fldr, type, forced: true, avoidYearMatch: true })
 							}
 							return true
 						}
