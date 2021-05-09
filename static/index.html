@@ -834,6 +834,10 @@
                         var pathParts = path.split(separator)
                         pathParts.pop()
                         prevPath = pathParts.join(separator)
+                        if (separator == '\\' && (path || '').length == 3 && (prevPath || '').length == 2 && !prevPath.includes('\\') && prevPath.endsWith(':')) {
+                            // special case for Win when going back from drive letter to main browser screen
+                            prevPath = ''
+                        }
                         folders.unshift({ path: prevPath, label: '..' })
                     }
                     currentPaths = folders
