@@ -618,7 +618,41 @@ function validateApiKey() {
 	})
 }
 
-app.get('/setSettings', (req, res) => {
+function passwordValid(req, res, cb) {
+	if (settings.pass) {
+		if (((req || {}).query || {}).pass == settings.pass) {
+			cb(req, res)
+			return
+		}
+		res.status(500)
+		res.send('Password Incorrect')
+		return
+	}
+	cb(req, res)
+}
+
+app.get('/checkPass', (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	res.send({ success: !!(settings.pass == (req.query || {}).pass) })
+})
+
+app.get('/needsPass', (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	res.send({ success: true, required: !!settings.pass })
+})
+
+app.get('/savePass', (req, res) => passwordValid(req, res, (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	if (((req || {}).query || {}).newpass) {
+		settings.pass = req.query.newpass
+		config.set('pass', settings.pass)
+		res.send({ success: true })
+		return
+	}
+	res.send({ success: false })
+}))
+
+app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	const posterType = (req.query || {}).posterType || 'poster-default'
 	settings.posterType = posterType
 	config.set('posterType', settings.posterType)
@@ -662,9 +696,9 @@ app.get('/setSettings', (req, res) => {
 	config.set('scanOrder', settings.scanOrder)
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })	
-})
+}))
 
-app.get('/getSettings', (req, res) => {
+app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
 		success: true,
@@ -682,16 +716,16 @@ app.get('/getSettings', (req, res) => {
 		scanOrder: settings.scanOrder,
 		cacheMatches: settings.cacheMatches,
 	})
-})
+}))
 
-app.get('/browse', async (req, res) => {
+app.get('/browse', (req, res) => passwordValid(req, res, async (req, res) => {
 	const folder = (req.query || {}).folder || ''
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
 		success: true,
 		folders: await browser(folder)
 	})
-})
+}))
 
 function removeFolderLogic(res, type, folder) {
 	if (folder)
@@ -700,13 +734,13 @@ function removeFolderLogic(res, type, folder) {
 	res.send({ success: true })
 }
 
-app.get('/removeMovieFolder', (req, res) => {
+app.get('/removeMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	removeFolderLogic(res, 'movie', (req.query || {}).folder || '')
-})
+}))
 
-app.get('/removeSeriesFolder', (req, res) => {
+app.get('/removeSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	removeFolderLogic(res, 'series', (req.query || {}).folder || '')
-})
+}))
 
 function addFolderLogic(res, type, folder, label) {
 	if (folder)
@@ -715,15 +749,15 @@ function addFolderLogic(res, type, folder, label) {
 	res.send({ success: true })
 }
 
-app.get('/addMovieFolder', (req, res) => {
+app.get('/addMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	addFolderLogic(res, 'movie', (req.query || {}).folder || '', (req.query || {}).label || '')
-})
+}))
 
-app.get('/addSeriesFolder', (req, res) => {
+app.get('/addSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	addFolderLogic(res, 'series', (req.query || {}).folder || '', (req.query || {}).label || '')
-})
+}))
 
-app.get('/setApiKey', (req, res) => {
+app.get('/setApiKey', (req, res) => passwordValid(req, res, (req, res) => {
 	const key = (req.query || {}).key || ''
 	res.setHeader('Content-Type', 'application/json')
 	if ((key || '').length > 3) {
@@ -733,7 +767,7 @@ app.get('/setApiKey', (req, res) => {
 	} else {
 		res.send({ success: false })
 	}
-})
+}))
 
 function changePosterForFolder(folder, imdbId, type) {
 	return new Promise((resolve, reject) => {
@@ -778,7 +812,7 @@ function changePosterForFolder(folder, imdbId, type) {
 	})
 }
 
-app.get('/addFixMatch', async(req, res) => {
+app.get('/addFixMatch', (req, res) => passwordValid(req, res, async(req, res) => {
 	const folder = (req.query || {}).folder || ''
 	const imdbPart = (req.query || {}).imdb || ''
 	const type = (req.query || {}).type || ''
@@ -807,11 +841,11 @@ app.get('/addFixMatch', async(req, res) => {
 	}
 	const respObj = await changePosterForFolder(folder, imdbId, type)
 	res.send(respObj)
-})
+}))
 
 let noSpamScan = false
 
-app.get('/runFullScan', (req, res) => {
+app.get('/runFullScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (noSpamScan) {
 		res.send({ success: false, message: `Full scan already running` })
@@ -840,9 +874,9 @@ app.get('/runFullScan', (req, res) => {
 		return
 	}
 	res.send({ success: false, message: `Full scan already running` })
-})
+}))
 
-app.get('/forceOverwriteScan', (req, res) => {
+app.get('/forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (noSpamScan) {
 		res.send({ success: false, message: `Full scan already running` })
@@ -858,9 +892,9 @@ app.get('/forceOverwriteScan', (req, res) => {
 		startFetchingPosters(folders, type, true)
 	}
 	res.send({ success: true })
-})
+}))
 
-app.get('/pollData', (req, res) => {
+app.get('/pollData', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	let lastFullUpdate = 0
 	if (settings.lastFullUpdate['movie'] > settings.lastFullUpdate['series'])
@@ -873,7 +907,7 @@ app.get('/pollData', (req, res) => {
 		historyCount: Object.keys(settings.imdbCache.movie || []).length + Object.keys(settings.imdbCache.series || []).length,
 		scanItems: nameQueue.length() || 0,
 	})
-})
+}))
 
 const semver = require('semver')
 
@@ -925,7 +959,7 @@ app.get('/needsUpdate', (req, res) => {
 	})
 })
 
-app.get('/searchStrings', async (req, res) => {
+app.get('/searchStrings', (req, res) => passwordValid(req, res, async (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -938,9 +972,9 @@ app.get('/searchStrings', async (req, res) => {
 	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType], mediaType)
 	res.setHeader('Content-Type', 'application/json')
 	res.send(searchStringsResp)	
-})
+}))
 
-app.get('/poster', (req, res) => {
+app.get('/poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -961,9 +995,9 @@ app.get('/poster', (req, res) => {
 		else
 			internalError()
 	})
-})
+}))
 
-app.get('/checkRequests', (req, res) => {
+app.get('/checkRequests', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	needle.get('https://api.ratingposterdb.com/' + settings.apiKey + '/requests?break=' + Date.now(), (err, resp, body) => {
 		if ((body || {}).limit) {
@@ -973,13 +1007,13 @@ app.get('/checkRequests', (req, res) => {
 			res.send({ success: false })
 		}
 	})
-})
+}))
 
 const ISO6391 = require('iso-639-1')
 
 const tmdbKey = require('./tmdbKey').key
 
-app.get('/poster-choices', (req, res) => {
+app.get('/poster-choices', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1011,9 +1045,9 @@ app.get('/poster-choices', (req, res) => {
 		} else
 			internalError()
 	})
-})
+}))
 
-app.get('/tmdb-poster', (req, res) => {
+app.get('/tmdb-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1035,10 +1069,10 @@ app.get('/tmdb-poster', (req, res) => {
 		} else
 			internalError()
 	})
-})
+}))
 
 
-app.get('/custom-poster', (req, res) => {
+app.get('/custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1060,7 +1094,7 @@ app.get('/custom-poster', (req, res) => {
 		} else
 			internalError()
 	})
-})
+}))
 
 let staticPath = path.join(path.dirname(process.execPath), 'static')
 

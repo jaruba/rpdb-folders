@@ -108,6 +108,18 @@
                 <br/><br/>
             </div>
             <div>
+                <form class="pure-form pure-form-aligned" id="password-check" onsubmit="return set_pass()" style="display: none">
+                    <fieldset>
+                        <div class="pure-control-group">
+                            <input type="password" id="service-pass" placeholder="Password" />
+                            <span class="pure-form-message-inline">
+                                &nbsp;<button type="submit" class="pure-button pure-button-primary">Load</button>
+                            </span>
+                        </div>
+                        <br/>
+                        <div id="pass-error" style="display: none; opacity: 0.7">Wrong password, try again.</div>
+                    </fieldset>
+                </form>
                 <form class="pure-form pure-form-aligned" id="api-key-form" onsubmit="return set_api_key()" style="display: none">
                     <fieldset>
                         <div class="pure-control-group">
@@ -194,6 +206,8 @@
                         <button type="button" class="pure-button" onclick="openCheckRequests()">Check Requests</button>
                         <br/><br/><br/>
                         <button type="button" class="pure-button" onclick="openScanSettings()">Scan Settings</button>
+                        <br/><br/><br/>
+                        <button type="button" class="pure-button" onclick="openChoosePassword()">Choose Password</button>
                         <br/><br/><br/>
                     </div>
                 </form>
@@ -379,6 +393,30 @@
                 <br/><br/><br/>
                 <div class="fix-error-message" style="display: none; color: red"></div>
                 <br/><br/>
+            </div>
+        </div>
+        <div id="choose-password" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Choose Server Password</h1>
+            <div style="text-align: center">
+                <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
+                    The server does not have a password by default, it is although advised to secure your server if it is available outside of your network.
+                </div>
+                <br/><br/><br/>
+                <form class="pure-form pure-form-aligned" id="choose-pass-form" onsubmit="return save_new_pass()">
+                    <fieldset>
+                        <div class="pure-control-group">
+                            <input type="password" id="choose-pass-1" placeholder="Password" />
+                        </div>
+                        <br/>
+                        <div class="pure-control-group">
+                            <input type="password" id="choose-pass-2" placeholder="Retype Password" />
+                        </div>
+                        <br/>
+                        <button type="submit" class="pure-button pure-button-primary">Save Password</button>&nbsp;&nbsp;&nbsp;<button type="button" class="pure-button" onclick="closeChoosePassword()">Close</button>
+                        <br/><br/>
+                        <div id="pass-no-match" style="display: none; opacity: 0.7">Passwords do not match.</div>
+                    </fieldset>
+                </form>
             </div>
         </div>
         <div id="scan-settings" class="full-page-dialog" style="display: none">
@@ -568,7 +606,7 @@
                 } else {
                     $.get('https://api.ratingposterdb.com/' + apiKey + '/isValid', function(data) {
                         if ((data || {}).valid) {
-                            $.get('/setApiKey?key=' + apiKey, function(data) { })
+                            $.get('/setApiKey?key=' + apiKey + '&pass=' + encodeURIComponent(servPass || ''), function(data) { })
                             validatedKey()
                         } else {
                             $('#api-key').val('')
@@ -608,135 +646,175 @@
                   textless = 1;
                 }
                 var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches, function(data) {});
+                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+            }
+            var servPass = false
+            function set_pass() {
+                var tempPass = $('#service-pass').val()
+                $.get('/checkPass?pass=' + encodeURIComponent(tempPass), function(data) {
+                    if ((data || {}).success) {
+                        servPass = tempPass
+                        $('#password-check').hide()
+                        init()
+                    } else {
+                        $('#pass-error').show()
+                    }
+                })
+                return false
+            }
+            function save_new_pass() {
+                var tempPass1 = $('#choose-pass-1').val()
+                var tempPass2 = $('#choose-pass-2').val()
+                if (tempPass1 && tempPass1 == tempPass2) {
+                    $.get('/savePass?newpass=' + encodeURIComponent(tempPass1) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
+                        if ((data || {}).success) {
+                            location.reload()
+                        }
+                    })
+                } else {
+                    $('#pass-no-match').show()
+                }
             }
             function set_api_key() {
                 apiKey = $('#api-key').val()
                 load_api_key()
                 return false
             }
+            var init
             $(document).ready(function() {
-                checkUpdate()
-                $.get('/getSettings', function(data) {
-                    if ((data || {}).success) {
-                        // load saved data
-                        if (data.overwrite) {
-                            $("#overwrite-option-one").prop('checked', true)
-                        }
-                        if (data.overwrite2years) {
-                            $("#overwrite-option-two").prop('checked', true)
-                        }
-                        if (data.noEmptyFolders) {
-                            $("#no-empty-folders").prop('checked', true)
-                        }
-                        if (!data.cacheMatches) {
-                            $("#cache-matches").prop('checked', false)
-                        }
-                        if (data.backdrops) {
-                            $("#backdrops-option-one").prop('checked', true)
-                        }
-                        if (data.textless) {
-                            $("#textless-option-one").prop('checked', true)
-                        }
-                        if (data.posterType) {
-                            $('input[name=optionsRadios]', '#adv-opts-form').each((ij,el)=> {
-                                if ($(el).val() == data.posterType) {
-                                    $(el).prop('checked', true)
-                                } else {
-                                    $(el).prop('checked', false)
-                                }
-                            })
-                        }
-                        if (data.minOverwritePeriod) {
-                            var overwritePeriod = ''
-                            if (data.minOverwritePeriod == 29 * 24 * 60 * 60 * 1000) {
-                                overwritePeriod = 'overwrite-monthly'
-                            } else {
-                                overwritePeriod = 'overwrite-bimonthly'
+                init = function() {
+                    checkUpdate()
+                    $.get('/getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
+                        if ((data || {}).success) {
+                            // load saved data
+                            if (data.overwrite) {
+                                $("#overwrite-option-one").prop('checked', true)
                             }
-                            $('input[name=overwriteRadios]', '#overwrite-opts-form').each((ij,el)=> {
-                                if ($(el).val() == overwritePeriod) {
-                                    $(el).prop('checked', true)
+                            if (data.overwrite2years) {
+                                $("#overwrite-option-two").prop('checked', true)
+                            }
+                            if (data.noEmptyFolders) {
+                                $("#no-empty-folders").prop('checked', true)
+                            }
+                            if (!data.cacheMatches) {
+                                $("#cache-matches").prop('checked', false)
+                            }
+                            if (data.backdrops) {
+                                $("#backdrops-option-one").prop('checked', true)
+                            }
+                            if (data.textless) {
+                                $("#textless-option-one").prop('checked', true)
+                            }
+                            if (data.posterType) {
+                                $('input[name=optionsRadios]', '#adv-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.posterType) {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
+                            if (data.minOverwritePeriod) {
+                                var overwritePeriod = ''
+                                if (data.minOverwritePeriod == 29 * 24 * 60 * 60 * 1000) {
+                                    overwritePeriod = 'overwrite-monthly'
                                 } else {
-                                    $(el).prop('checked', false)
+                                    overwritePeriod = 'overwrite-bimonthly'
                                 }
-                            })
+                                $('input[name=overwriteRadios]', '#overwrite-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == overwritePeriod) {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
+                            if (data.scanOrder) {
+                                $('input[name=scanOrderRadios]', '#scan-order-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.scanOrder) {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
+                            $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
+                            $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
+                            if (data.apiKeyPrefix) {
+                                apiKey = data.apiKeyPrefix
+                                load_api_key(true)
+                            } else {
+                                $('#top-links').show()
+                                $('#api-key-form').show()
+                            }
                         }
-                        if (data.scanOrder) {
-                            $('input[name=scanOrderRadios]', '#scan-order-opts-form').each((ij,el)=> {
-                                if ($(el).val() == data.scanOrder) {
-                                    $(el).prop('checked', true)
-                                } else {
-                                    $(el).prop('checked', false)
-                                }
-                            })
+                    });
+                    $('#adv-opts-form input').on('change', function() {
+                        updateSettings();
+                    });
+                    $('#scan-order-opts-form input').on('change', function() {
+                        updateSettings();
+                    });
+                    $('#overwrite-opts-form input').on('change', function() {
+                        updateSettings();
+                    });
+                    $("#overwrite-option-one").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#overwrite-option-two").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#no-empty-folders").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#cache-matches").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#backdrops-option-one").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#textless-option-one").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#change-api-key").click(function(e) {
+                        e.preventDefault()
+                        $('#api-key').val('')
+                        $('#opts-holder').hide()
+                        $('#api-key-success').hide()
+                        $('#note-tier-1').hide()
+                        $('#top-links').show()
+                        $('#api-key-form').show()
+                    });
+                    setInterval(pollData, 2000)
+                    $('#search-folder-input').keyup(function() {
+                        var search = $(this).val()
+                        if (!search) {
+                            $('.search-list').html('')
+                            return;
                         }
-                        $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
-                        $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
-                        if (data.apiKeyPrefix) {
-                            apiKey = data.apiKeyPrefix
-                            load_api_key(true)
-                        } else {
-                            $('#top-links').show()
-                            $('#api-key-form').show()
+                        var rx = new RegExp(searchStrings.forbiddenChar+'([^'+searchStrings.forbiddenChar+']*'+search+'[^'+searchStrings.forbiddenChar+']*)'+searchStrings.forbiddenChar,'gi')
+                        var i = 0, searchResults = [];
+                        while (result = rx.exec(searchStrings.folders)) {
+                            searchResults.push(result[1])
+                            i += 1
+                            if (i >= 10)
+                                break;
                         }
-                    }
-                });
-                $('#adv-opts-form input').on('change', function() {
-                    updateSettings();
-                });
-                $('#scan-order-opts-form input').on('change', function() {
-                    updateSettings();
-                });
-                $('#overwrite-opts-form input').on('change', function() {
-                    updateSettings();
-                });
-                $("#overwrite-option-one").on('change', function() {
-                    updateSettings();
-                });
-                $("#overwrite-option-two").on('change', function() {
-                    updateSettings();
-                });
-                $("#no-empty-folders").on('change', function() {
-                    updateSettings();
-                });
-                $("#cache-matches").on('change', function() {
-                    updateSettings();
-                });
-                $("#backdrops-option-one").on('change', function() {
-                    updateSettings();
-                });
-                $("#textless-option-one").on('change', function() {
-                    updateSettings();
-                });
-                $("#change-api-key").click(function(e) {
-                    e.preventDefault()
-                    $('#api-key').val('')
-                    $('#opts-holder').hide()
-                    $('#api-key-success').hide()
-                    $('#note-tier-1').hide()
-                    $('#top-links').show()
-                    $('#api-key-form').show()
-                });
-                setInterval(pollData, 2000)
-                $('#search-folder-input').keyup(function() {
-                    var search = $(this).val()
-                    if (!search) {
-                        $('.search-list').html('')
-                        return;
-                    }
-                    var rx = new RegExp(searchStrings.forbiddenChar+'([^'+searchStrings.forbiddenChar+']*'+search+'[^'+searchStrings.forbiddenChar+']*)'+searchStrings.forbiddenChar,'gi')
-                    var i = 0, searchResults = [];
-                    while (result = rx.exec(searchStrings.folders)) {
-                        searchResults.push(result[1])
-                        i += 1
-                        if (i >= 10)
-                            break;
-                    }
-                    $('.search-list').html(searchResults.map(function(el, ij) {
-                        return '<div class="folder-line add-search-line" onclick="openFolderPosterEdit('+ij+')">' + el + '</div>'
-                    }))
+                        $('.search-list').html(searchResults.map(function(el, ij) {
+                            return '<div class="folder-line add-search-line" onclick="openFolderPosterEdit('+ij+')">' + el + '</div>'
+                        }))
 
+                    })
+                }
+                // check if password is required:
+                $.get('/needsPass', function(data) {
+                    if ((data || {}).success) {
+                        if (!data.required) {
+                            init()
+                        } else {
+                            $('#password-check').show()
+                        }
+                    }
                 })
             });
             function sep(path) {
@@ -778,7 +856,7 @@
                             return true
                         }
                     })
-                    $.get('/browse?folder=' + encodeURIComponent(path), handleBrowser.bind(null, path))
+                    $.get('/browse?folder=' + encodeURIComponent(path) + '&pass=' + encodeURIComponent(servPass || ''), handleBrowser.bind(null, path))
                 })
             }
             var browseMediaType = 'movie'
@@ -786,7 +864,7 @@
                 browseMediaType = 'movie'
                 $('#add-media-folder-title').text('Add Movie Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
-                $.get('/browse', handleBrowser.bind(null, null))
+                $.get('/browse?pass=' + encodeURIComponent(servPass || ''), handleBrowser.bind(null, null))
             }
             function pasteMediaFolder() {
                 $('#paste-media-folder-title').text('Add ' + capitalizeFirstLetter(browseMediaType) + ' Media Folder')
@@ -798,14 +876,14 @@
             function addPasteMediaFolder() {
                 $('.current-folder').text($('#paste-media-path').val())
                 var pastedPath = $('#paste-media-path').val()
-                $.get('/browse?folder=' + encodeURIComponent(pastedPath), handleBrowser.bind(null, pastedPath))
+                $.get('/browse?folder=' + encodeURIComponent(pastedPath) + '&pass=' + encodeURIComponent(servPass || ''), handleBrowser.bind(null, pastedPath))
             }
             function closePasteMediaFolder() {
                 $('#paste-media-folder').hide()
                 $('#add-media-folder').show()
             }
             function updatePage() {
-                $.get('/getSettings', function(data) {
+                $.get('/getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
                         $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
@@ -823,9 +901,9 @@
                 if (currentFolder != 'None') {
                     var folderLabel = $('#folder-label').children("option:selected").val()
                     if (browseMediaType == 'movie') {
-                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel, handleAddFolderResponse)
+                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     } else {
-                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel, handleAddFolderResponse)
+                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     }
                 } else {
                     $('#add-media-folder').hide()
@@ -835,7 +913,7 @@
                 browseMediaType = 'series'
                 $('#add-media-folder-title').text('Add Series Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
-                $.get('/browse', handleBrowser.bind(null, null))
+                $.get('/browse?pass=' + encodeURIComponent(servPass || ''), handleBrowser.bind(null, null))
             }
             function closeBrowser() {
                 $('#add-media-folder').hide()
@@ -850,14 +928,14 @@
                     }
                     var text = $(this).text().trim()
                     if ($(this).hasClass('movie-line')) {
-                        $.get('/removeMovieFolder?folder=' + encodeURIComponent(text), handleRemoveFolderResponse)
+                        $.get('/removeMovieFolder?folder=' + encodeURIComponent(text) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
                     } else {
-                        $.get('/removeSeriesFolder?folder=' + encodeURIComponent(text), handleRemoveFolderResponse)
+                        $.get('/removeSeriesFolder?folder=' + encodeURIComponent(text) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
                     }
                 })
             }
             function removeMediaFolder() {
-                $.get('/getSettings', function(data) {
+                $.get('/getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         if ((data.movieFolders || []).length) {
                             $('.remove-movie-folder-list').html(data.movieFolders.map((el, ij) => {
@@ -900,7 +978,7 @@
             }
             function openPosterEdit(type) {
                 searchFolderType = type
-                $.get('/searchStrings?type=' + type, function(data) {
+                $.get('/searchStrings?type=' + type + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (((data || {}).folders || '').length) {
                         searchStrings = data
                         $('#choose-media-folder-type').hide()
@@ -925,7 +1003,7 @@
                 if (!noReloadImg) {
                     $('#folder-poster-edit-img').attr('src','');
                     setTimeout(() => {
-                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now())
+                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
                     })
                 }
                 $('#folder-poster-edit').show()
@@ -935,7 +1013,7 @@
             }
             function addFixMatch() {
                 var imdbUrl = $('#imdb-url').val()
-                $.get('/addFixMatch?folder=' + encodeURIComponent(searchFolderName) + '&imdb=' + encodeURIComponent(imdbUrl) + '&type=' + searchFolderType, function(data) {
+                $.get('/addFixMatch?folder=' + encodeURIComponent(searchFolderName) + '&imdb=' + encodeURIComponent(imdbUrl) + '&type=' + searchFolderType + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         openFolderPosterEdit(false, searchFolderName)
                         $('#imdb-url').val('')
@@ -962,7 +1040,7 @@
             }
             function useThisPoster(ij) {
                 var thisPoster = $($('.poster-choice-img')[ij]).attr('src').split('/').pop()
-                $.get('/tmdb-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&tmdbPoster=' + thisPoster, function(data) {
+                $.get('/tmdb-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&tmdbPoster=' + thisPoster + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         openFolderPosterEdit(false, searchFolderName)
                         $('#poster-choices').html('')
@@ -980,7 +1058,7 @@
                 $('#choose-poster').find('h1.dialog-title').text(searchFolderName)
                 $('#choose-poster').show()
                 $('#folder-poster-edit').hide()
-                $.get('/poster-choices?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName), function(data) {
+                $.get('/poster-choices?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (((data || {}).items || []).length) {
                         choosePosterData = data
                         $('#choose-poster-lang').empty()
@@ -1008,7 +1086,7 @@
             }
             function loadCustomPoster() {
                 var thisPoster = $('#custom-poster-input').val()
-                $.get('/custom-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&customPoster=' + encodeURIComponent(thisPoster), function(data) {
+                $.get('/custom-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&customPoster=' + encodeURIComponent(thisPoster) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         openFolderPosterEdit(false, searchFolderName)
                         $('#custom-poster-input').val('')
@@ -1026,6 +1104,13 @@
                 openFolderPosterEdit(false, searchFolderName, true)
                 $('#custom-poster').hide()
             }
+            function openChoosePassword() {
+                $('#choose-password').show()
+            }
+            function closeChoosePassword() {
+                $('#choose-password').hide()
+                $('#pass-error').hide()
+            }
             function openScanSettings() {
                 $('#scan-settings').show()
             }
@@ -1033,13 +1118,13 @@
                 $('#scan-settings').hide()
             }
             function runFullScan() {
-                $.get('/runFullScan', function(data) {});
+                $.get('/runFullScan?pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             function forceOverwriteScan() {
-                $.get('/forceOverwriteScan', function(data) {});
+                $.get('/forceOverwriteScan?pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             function openCheckRequests() {
-                $.get('/checkRequests', function(data) {
+                $.get('/checkRequests?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (data.req && data.limit) {
                         $('#request-count').text('Requests: ' + data.req + ' / Limit: ' + data.limit)
                         $('#check-requests').show()
@@ -1051,7 +1136,7 @@
                 $('#request-count').text('')
             }
             function pollData() {
-                $.get('/pollData', function(data) {
+                $.get('/pollData?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
                         var dt = new Date(parseInt(data.lastFullUpdate))
