@@ -194,7 +194,7 @@
                         &nbsp;&nbsp;&nbsp;
                         <button type="button" class="pure-button pure-button-primary" onclick="openSeriesBrowser()">Add Series Folder</button>
                         <br/><br/>
-                        <button type="button" class="pure-button" onclick="removeMediaFolder()">Remove Media Folder</button>
+                        <button type="button" class="pure-button" onclick="editMediaFolder()">Edit Media Folder</button>
                         <br/><br/><br/>
                         <b>History</b><br/><br/>
                         <div id="history-msg" style="opacity: 0.7">Added images to 0 folders.</div>
@@ -281,23 +281,52 @@
                 <br/><br/><br/>
             </div>
         </div>
-        <div id="remove-media-folder" class="full-page-dialog" style="display: none">
-            <h1 class="dialog-title">Remove Media Folders</h1>
+        <div id="edit-media-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Edit Media Folders</h1>
             <div style="text-align: center">
-                Select a folder in order to remove it.
+                Select a folder in order to edit it's settings.
                 <br/><br/><br/>
-                <button type="button" class="pure-button" onclick="closeRemoveMediaFolder()">Close</button>
+                <button type="button" class="pure-button" onclick="closeEditMediaFolder()">Close</button>
                 <br/><br/><br/>
                 <center>
                     <b>Movie Folders</b><br/><br/>
-                    <div class="remove-movie-folder-list folder-list">
+                    <div class="edit-movie-folder-list folder-list">
                     </div>
                     <br/></br/>
                     <b>Series Folders</b><br/><br/>
-                    <div class="remove-series-folder-list folder-list">
+                    <div class="edit-series-folder-list folder-list">
                     </div>
                 </center>
 
+            </div>
+        </div>
+        <div id="edit-specific-folder" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Edit Media Folder</h1>
+            <div style="text-align: center">
+                <b>Scanner Status</b>
+                <br/><br/>
+                <div class="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="cancelScan()">Cancel Scan</button>
+                <br/><br/><br/><br/>
+                <b>Manual Scan Options</b>
+                <br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Scans are done periodically by default, by runing a full scan you initiate a scan manually for this folder.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="runFullScanSpecific()">Run Full Scan of Folder</button>
+                <br/><br/><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Forcing an overwrite will update all posters, refresh all ratings and apply new settings for this folder.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="forceOverwriteScanSpecific()">Force Overwrite Scan of Folder</button>
+                <br/><br/><br/><br/>
+                <button type="button" class="pure-button" onclick="removeSpecificFolder()">Remove Media Folder</button>
+                <br/><br/><br/><br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="closeEditSpecificFolder()">Close</button>
+                <br/><br/><br/>
             </div>
         </div>
         <div id="choose-media-folder-type" class="full-page-dialog" style="display: none">
@@ -479,7 +508,7 @@
                 <br/><br/><br/><br/>
                 <b>Scanner Status</b>
                 <br/><br/>
-                <div id="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
+                <div class="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
                 <br/><br/>
                 <button type="button" class="pure-button" onclick="cancelScan()">Cancel Scan</button>
                 <br/><br/><br/><br/>
@@ -924,47 +953,71 @@
             function closeBrowser() {
                 $('#add-media-folder').hide()
             }
+            function openEditSpecificFolder() {
+                $('#edit-specific-folder').find('h1.dialog-title').text(specificFolder)
+                $('#edit-specific-folder').show()
+                closeEditMediaFolder()
+            }
+            function closeEditSpecificFolder() {
+                $('#edit-specific-folder').hide()
+            }
+            function forceOverwriteScanSpecific() {
+                $.get('/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=' + (specificFolderMovie ? 'movie' : 'series') + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+            }
+            function runFullScanSpecific() {
+                $.get('/runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=' + (specificFolderMovie ? 'movie' : 'series') + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+            }
+            function removeSpecificFolder() {
+                function handleRemoveFolderResponse(data) {
+                    if ((data || {}).success) {
+                        closeEditSpecificFolder()
+                    }
+                }
+                if (specificFolderMovie) {
+                    $.get('/removeMovieFolder?folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
+                } else {
+                    $.get('/removeSeriesFolder?folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
+                }
+            }
+            var specificFolder = ''
+            var specificFolderMovie = false
             function attachRemoveFolderClickListeners() {
-                $(".remove-line").click(function(e) {
+                $(".edit-line").click(function(e) {
                     e.preventDefault()
-                    function handleRemoveFolderResponse(data) {
-                        if ((data || {}).success) {
-                            removeMediaFolder()
-                        }
-                    }
-                    var text = $(this).text().trim()
+                    specificFolder = $(this).text().trim()
                     if ($(this).hasClass('movie-line')) {
-                        $.get('/removeMovieFolder?folder=' + encodeURIComponent(text) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
+                        specificFolderMovie = true
                     } else {
-                        $.get('/removeSeriesFolder?folder=' + encodeURIComponent(text) + '&pass=' + encodeURIComponent(servPass || ''), handleRemoveFolderResponse)
+                        specificFolderMovie = false
                     }
+                    openEditSpecificFolder()
                 })
             }
-            function removeMediaFolder() {
+            function editMediaFolder() {
                 $.get('/getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
                         if ((data.movieFolders || []).length) {
-                            $('.remove-movie-folder-list').html(data.movieFolders.map((el, ij) => {
-                                return '<div class="folder-line remove-line movie-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
+                            $('.edit-movie-folder-list').html(data.movieFolders.map((el, ij) => {
+                                return '<div class="folder-line edit-line movie-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
                             }))
                         } else {
-                            $('.remove-movie-folder-list').html('<span style="opacity: 0.5">None Added</span>')
+                            $('.edit-movie-folder-list').html('<span style="opacity: 0.5">None Added</span>')
                         }
                         if ((data.seriesFolders || []).length) {
-                            $('.remove-series-folder-list').html(data.seriesFolders.map((el, ij) => {
-                                return '<div class="folder-line remove-line series-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
+                            $('.edit-series-folder-list').html(data.seriesFolders.map((el, ij) => {
+                                return '<div class="folder-line edit-line series-line"' + (!ij ? ' style="border-top: 1px solid rgba(0,0,0,0.3)"' : '') + '>' + el + '</div>'
                             }))
                         } else {
-                            $('.remove-series-folder-list').html('<span style="opacity: 0.5">None Added</span>')
+                            $('.edit-series-folder-list').html('<span style="opacity: 0.5">None Added</span>')
                         }
-                        $('#remove-media-folder').show()
+                        $('#edit-media-folder').show()
                         attachRemoveFolderClickListeners()
                     }
                 })
             }
-            function closeRemoveMediaFolder() {
+            function closeEditMediaFolder() {
                 updatePage()
-                $('#remove-media-folder').hide()
+                $('#edit-media-folder').hide()
             }
             function openFixMatch() {
                 $('#fix-media-match').find('h1.dialog-title').text('Fix Match for ' + searchFolderName)
@@ -1150,7 +1203,7 @@
                         $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
                         var dt = new Date(parseInt(data.lastFullUpdate))
                         $('#full-scan-msg').html('Last full scan started:<br/><br/>' + dt.toLocaleString())
-                        $('#scan-status').text(data.scanItems ? 'Scanning (' + data.scanItems + ' items in queue)' : 'Idle, not scanning')
+                        $('.scan-status').text(data.scanItems ? 'Scanning (' + data.scanItems + ' items in queue)' : 'Idle, not scanning')
                     }
                 });
             }

@@ -856,6 +856,15 @@ app.get('/runFullScan', (req, res) => passwordValid(req, res, (req, res) => {
 		noSpamScan = false
 	}, 5000)
 	if (!fullScanRunning) {
+		if (((req || {}).query || {}).folder && req.query.type) {
+			const idx = settings.mediaFolders[req.query.type].indexOf(req.query.folder)
+			if (idx !== -1) {
+				const overwrite = shouldOverwrite(req.query.type)
+				startFetchingPosters([req.query.folder], req.query.type, overwrite)
+				res.send({ success: true })
+				return
+			}
+		}
 		let anyOverwrite = false
 		for (const [type, folders] of Object.entries(settings.mediaFolders)) {
 			console.log(`Full scan forced to start for ${type} folders`)
@@ -886,6 +895,14 @@ app.get('/forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) 
 	setTimeout(() => {
 		noSpamScan = false
 	}, 5000)
+	if (((req || {}).query || {}).folder && req.query.type) {
+		const idx = settings.mediaFolders[req.query.type].indexOf(req.query.folder)
+		if (idx !== -1) {
+			startFetchingPosters([req.query.folder], req.query.type, true, true)
+			res.send({ success: true })
+			return
+		}
+	}
 	for (const [type, folders] of Object.entries(settings.mediaFolders)) {
 		console.log(`Overwrite scan forced to start for ${type} folders`)
 		settings.lastFullUpdate[type] = Date.now()
