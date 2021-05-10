@@ -480,6 +480,8 @@
                 <b>Scanner Status</b>
                 <br/><br/>
                 <div id="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="cancelScan()">Cancel Scan</button>
                 <br/><br/><br/><br/>
                 <b>Manual Scan Options</b>
                 <br/><br/>
@@ -1126,6 +1128,9 @@
             }
             function forceOverwriteScan() {
                 $.get('/forceOverwriteScan?pass=' + encodeURIComponent(servPass || ''), function(data) {});
+            }
+            function cancelScan() {
+                $.get('/cancelScan?pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             function openCheckRequests() {
                 $.get('/checkRequests?pass=' + encodeURIComponent(servPass || ''), function(data) {

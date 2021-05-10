@@ -443,12 +443,12 @@ const getDirectories = (source, withVideos) => fs.readdirSync(source).map(name =
 
 let fullScanRunning = false
 
-function startFetchingPosters(theseFolders, type, forced) {
+function startFetchingPosters(theseFolders, type, forced, avoidYearMatch) {
 	let allFolders = []
 	theseFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
 	if (allFolders.length) {
 		fullScanRunning = true
-		allFolders.forEach((el) => { const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced }) })
+		allFolders.forEach((el) => { const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced, avoidYearMatch }) })
 	}
 }
 
@@ -891,6 +891,13 @@ app.get('/forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) 
 		settings.lastFullUpdate[type] = Date.now()
 		startFetchingPosters(folders, type, true)
 	}
+	res.send({ success: true })
+}))
+
+app.get('/cancelScan', (req, res) => passwordValid(req, res, (req, res) => {
+	res.setHeader('Content-Type', 'application/json')
+	if (nameQueue.length())
+		queueDisabled = true
 	res.send({ success: true })
 }))
 
