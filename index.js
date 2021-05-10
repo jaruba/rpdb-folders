@@ -1095,6 +1095,26 @@ app.get('/tmdb-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
+app.get('/update-ratings-poster', (req, res) => passwordValid(req, res, (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.folder
+	const mediaType = req.query.type
+	if (!mediaName || !mediaType) {
+		internalError()
+		return
+	}
+	folderNameToImdb(mediaName, mediaType, async (imdbId) => {
+		if (imdbId) {
+			res.setHeader('Content-Type', 'application/json')
+			const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
+			res.send(respObj)
+		} else
+			internalError()
+	})
+}))
 
 app.get('/custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {

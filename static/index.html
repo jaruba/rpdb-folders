@@ -366,6 +366,10 @@
                 &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="openCustomPoster()">Custom Poster</button>
                 <br/><br/>
+                <button type="button" class="pure-button" onclick="updateRatingsPoster()">Update Ratings</button>
+                <br/>
+                <div id="update-ratings-poster-msg" style="display: none; opacity: 0.7"></div>
+                <br/>
                 <button type="button" class="pure-button" onclick="closeFolderPosterEdit()">Close</button>
             </div>
         </div>
@@ -1054,6 +1058,7 @@
                 $('#search-folder').hide()
             }
             function openFolderPosterEdit(ij, srcFolderName, noReloadImg) {
+                $('#update-ratings-poster-msg').hide()
                 searchFolderName = srcFolderName || $($('.add-search-line')[ij]).text()
                 $('.search-list').html('')
                 searchStrings = {}
@@ -1157,6 +1162,18 @@
                         $('.fix-error-message').text('Unknown error occurred')
                         $('.fix-error-message').show()
                     }
+                })
+            }
+            function updateRatingsPoster() {
+                $.get('/update-ratings-poster?folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
+                    if ((data || {}).success) {
+                        $('#update-ratings-poster-msg').html('<br/>Successfully Updated Poster')
+                    } else if ((data || {}).message) {
+                        $('#update-ratings-poster-msg').html('<br/>'+data.message)
+                    } else {
+                        $('#update-ratings-poster-msg').html('<br/>Unknown Error Occurred While Updating Poster')
+                    }
+                    $('#update-ratings-poster-msg').show()
                 })
             }
             function closeCustomPoster() {
