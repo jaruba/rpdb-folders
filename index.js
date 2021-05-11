@@ -294,6 +294,7 @@ const nameQueue = async.queue((task, cb) => {
 			return
 		}
 		const posterUrl = posterFromImdbId(imdbId, folderLabel)
+
 		needle.get(posterUrl, (err, res) => {
 			if (!err && (res || {}).statusCode == 200) {
 				fs.writeFile(path.join(targetFolder, posterName), res.raw, (err) => {
@@ -727,6 +728,27 @@ app.get('/browse', (req, res) => passwordValid(req, res, async (req, res) => {
 	})
 }))
 
+app.get('/editFolderLabel', (req, res) => passwordValid(req, res, (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const folder = (req.query || {}).folder || ''
+	const label = (req.query || {}).label || ''
+	if (!folder || !label) {
+		internalError()
+		return
+	}
+	if (label == 'none') {
+		internalError()
+		return
+	}
+	settings.labels[folder] = label
+	config.set('labels', settings.labels)
+	res.setHeader('Content-Type', 'application/json')
+	res.send({ success: true })
+}))
+
 function removeFolderLogic(res, type, folder) {
 	if (folder)
 		removeMediaFolder(type, folder)
@@ -1019,6 +1041,17 @@ app.get('/poster', (req, res) => passwordValid(req, res, (req, res) => {
 		else
 			internalError()
 	})
+}))
+
+app.get('/preview', (req, res) => passwordValid(req, res, (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaImdb = req.query.imdb || 'tt0068646'
+	const mediaLabel = req.query.label
+	const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/poster-default/' + mediaImdb + '.jpg' + (mediaLabel ? '?label=' + mediaLabel : '')
+	needle.get(posterUrl).pipe(res)
 }))
 
 app.get('/checkRequests', (req, res) => passwordValid(req, res, (req, res) => {

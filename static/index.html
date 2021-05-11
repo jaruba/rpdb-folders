@@ -92,6 +92,12 @@
                 max-width: 80%;
                 background-color: rgba(0,0,0,0.1);
             }
+            #preview-poster-img {
+                width: 290px;
+                height: 429px;
+                max-width: 80%;
+                background-color: rgba(0,0,0,0.1);
+            }
         </style>
     </head>
     <body>
@@ -230,32 +236,9 @@
                 <div id="folder-label-note">If a label is chosen, it will be added to the top of all posters from this folder.<br/><br/><br/></div>
                 <div class="current-folder" onclick="pasteMediaFolder()"></div>
                 <br/>
-                <form class="pure-form folder-label-form">
-                    <label for="folder-label">Label&nbsp;</label>
-                    <select id="folder-label">
-                        <option value="none">None</option>
-                        <option value="4K">4K (text) center</option>
-                        <option value="4k-badge-right">4K (badge) right</option>
-                        <option value="4k-badge-left">4K (badge) left</option>
-                        <option value="1080p">1080p (text) center</option>
-                        <option value="1080p-badge-right">1080p (badge) right</option>
-                        <option value="1080p-badge-left">1080p (badge) left</option>
-                        <option value="720p">720p (text) center</option>
-                        <option value="720p-badge-right">720p (badge) right</option>
-                        <option value="720p-badge-left">720p (badge) left</option>
-                        <option value="SD">SD (text) center</option>
-                        <option value="2K">2K (text) center</option>
-                        <option value="2k-badge-right">2K (badge) right</option>
-                        <option value="2k-badge-left">2K (badge) left</option>
-                        <option value="5K">5K (text) center</option>
-                        <option value="5k-badge-right">5K (badge) right</option>
-                        <option value="5k-badge-left">5K (badge) left</option>
-                        <option value="8K">8K (text) center</option>
-                        <option value="8k-badge-right">8K (badge) right</option>
-                        <option value="8k-badge-left">8K (badge) left</option>
-                    </select>
-                </form>
                 <button type="button" class="pure-button pure-button-primary" onclick="addFolder()">Add Folder</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="openAddBadges()">Add Badges / Label</button>
                 &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="closeBrowser()">Close</button>
                 <br/><br/><br/>
@@ -303,6 +286,8 @@
         <div id="edit-specific-folder" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Edit Media Folder</h1>
             <div style="text-align: center">
+                <button type="button" class="pure-button" onclick="openAddBadges()">Add Badges / Label</button>
+                <br/><br/><br/>
                 <b>Scanner Status</b>
                 <br/><br/>
                 <div class="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
@@ -452,6 +437,148 @@
                 </form>
             </div>
         </div>
+        <div id="choose-badge-settings" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Choose Badge or Label</h1>
+            <div style="text-align: center">
+                <form class="pure-form">
+                    <select id="badge-or-label">
+                        <option value="badge">Badge</option>
+                        <option value="label">Label</option>
+                    </select>
+                </form>
+            </div>
+            <br/>
+            <div style="text-align: center; display: none" id="choose-label-view">
+                <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
+                    Labels are custom text that can be added to the top of a poster.
+                </div>
+                <form class="pure-form">
+                    <br/>
+                    <input type="text" id="label-text" placeholder="Label Text" />
+                    <br/><br/>
+                </form>
+            </div>
+            <div style="text-align: center; display: none" id="choose-badge-view">
+                <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
+                    Up to 4 badges can be displayed on one poster.
+                </div>
+                <br/><br/><br/>
+                <form class="pure-form badge-form">
+                    <b>Badge Position</b><br/><br/>
+                    <select id="badge-position">
+                        <option value="left">Top Left</option>
+                        <option value="center">Top Center</option>
+                        <option value="right">Top Right</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>Video Quality</b><br/><br/>
+                    <select id="video-quality-badges">
+                        <option value="none">None</option>
+                        <option value="4k">4K (Ultra HD)</option>
+                        <option value="1080p">1080p (Full HD)</option>
+                        <option value="720p">720p (HD)</option>
+                        <option value="2k">2K (Quad HD)</option>
+                        <option value="5k">5K (Ultra HD)</option>
+                        <option value="8k">8K (Ultra HD)</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>HDR</b><br/><br/>
+                    <select id="hdr-badges">
+                        <option value="none">None</option>
+                        <option value="hdr">HDR (True Color)</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>REMUX</b><br/><br/>
+                    <select id="remux-badges">
+                        <option value="none">None</option>
+                        <option value="remux">REMUX (Lossless)</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>Audio</b><br/><br/>
+                    <select id="audio-types">
+                        <option value="none-audio">None</option>
+                        <option value="standard-audio">Standard</option>
+                        <option value="dd-audio">Dolby Digital</option>
+                        <option value="ddp-audio">Dolby Digital Plus</option>
+                        <option value="truehd-audio">Dolby TrueHD</option>
+                        <option value="lpcm-audio">Linear PCM</option>
+                    </select>
+                    <div id="standard-audio" style="display: none">
+                        <br/>
+                        <select id="standard-audio-badges">
+                            <option value="none">None</option>
+                            <option value="audio20">2.0 (Stereo)</option>
+                            <option value="audio51">5.1 (Surround)</option>
+                            <option value="audio71">7.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <div id="dd-audio" style="display: none">
+                        <br/>
+                        <select id="dd-audio-badges">
+                            <option value="none">None</option>
+                            <option value="dd20">DD2.0 (Stereo)</option>
+                            <option value="dd51">DD5.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <div id="ddp-audio" style="display: none">
+                        <br/>
+                        <select id="ddp-audio-badges">
+                            <option value="none">None</option>
+                            <option value="ddp20">DDP2.0 (Stereo)</option>
+                            <option value="ddp51">DDP5.1 (Surround)</option>
+                            <option value="ddp51">DDP5.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <div id="truehd-audio" style="display: none">
+                        <br/>
+                        <select id="truehd-audio-badges">
+                            <option value="none">None</option>
+                            <option value="truehd51lossless">TrueHD5.1 (Lossless)</option>
+                            <option value="truehd51surround">TrueHD5.1 (Surround)</option>
+                            <option value="truehd71lossless">TrueHD7.1 (Lossless)</option>
+                            <option value="truehd71surround">TrueHD7.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <div id="lpcm-audio" style="display: none">
+                        <br/>
+                        <select id="lpcm-audio-badges">
+                            <option value="none">None</option>
+                            <option value="pcm51lossless">PCM5.1 (Lossless)</option>
+                            <option value="pcm51surround">PCM5.1 (Surround)</option>
+                            <option value="pcm71lossless">PCM7.1 (Lossless)</option>
+                            <option value="pcm71surround">PCM7.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <br/><br/><br/>
+                    <b>Personal Rating</b><br/><br/>
+                    <select id="pr-types">
+                        <option value="none">None</option>
+                        <option value="5stars">5 Stars (Perfect)</option>
+                        <option value="4stars">4 Stars (Great)</option>
+                        <option value="3stars">3 Stars (Good)</option>
+                        <option value="2stars">2 Stars (Bad)</option>
+                        <option value="1stars">1 Star (Horrible)</option>
+                    </select>
+                </form>
+                <br/><br/><br/>
+            </div>
+            <div style="text-align: center">
+                <button type="button" class="pure-button" onclick="openPreviewPoster()">Preview Poster</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="cancelAddBadges()">Cancel</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button pure-button-primary" onclick="saveAddBadges()">Save &amp; Close</button>
+                <br/><br/><br/><br/><br/>
+            </div>
+        </div>
+        <div id="preview-poster" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Preview Poster</h1>
+            <div style="text-align: center">
+                <img id="preview-poster-img" src="">
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closePreviewPoster()">Back</button>
+            </div>
+        </div>
         <div id="scan-settings" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Scan Settings</h1>
             <div style="text-align: center">
@@ -495,11 +622,11 @@
                     <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
                         <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="tmdb-imdb" /> TMDB > IMDB</label>
                     <br/>
-                    <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
-                        <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="imdb" /> IMDB Only</label>
+                    <label for="checkbox-radio-scan-order-three" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-three" name="scanOrderRadios" value="imdb" /> IMDB Only</label>
                     &nbsp;&nbsp;
-                    <label for="checkbox-radio-scan-order-two" class="pure-radio" style="display: inline-block">
-                        <input type="radio" id="checkbox-radio-scan-order-two" name="scanOrderRadios" value="tmdb" /> TMDB Only</label>
+                    <label for="checkbox-radio-scan-order-four" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-order-four" name="scanOrderRadios" value="tmdb" /> TMDB Only</label>
                 </form>
                 <br/><br/>
                 <b>Other Settings</b>
@@ -784,6 +911,36 @@
                             }
                         }
                     });
+                    $('#badge-or-label').on('change', function() {
+                        $('#badge-position').val($('#badge-position option:first').val())
+                        $('#video-quality-badges').val($('#video-quality-badges option:first').val())
+                        $('#hdr-badges').val($('#hdr-badges option:first').val())
+                        $('#remux-badges').val($('#remux-badges option:first').val())
+                        $('#audio-types').val($('#audio-types option:first').val())
+                        $('#pr-types').val($('#pr-types option:first').val())
+                        Array.from(document.getElementById('audio-types').options).forEach(el => {
+                            if (el.value != 'none-audio') {
+                                $('#' + el.value).hide()
+                                $('#' + el.value + ' select').val($('#' + el.value + ' select option:first').val())
+                            }
+                        })
+                        $('#label-text').val('')
+                        $('#choose-label-view').hide()
+                        $('#choose-badge-view').hide()
+                        $('#choose-' + $('#badge-or-label').val() + '-view').show()
+                    })
+                    $('#audio-types').on('change', function() {
+                        var newAudioTypeSelect = $('#audio-types').val()
+                        Array.from(document.getElementById('audio-types').options).forEach(el => {
+                            if (el.value != 'none-audio') {
+                                $('#' + el.value).hide()
+                                $('#' + el.value + ' select').val($('#' + el.value + ' select option:first').val())
+                            }
+                        })
+                        if (newAudioTypeSelect != 'none-audio') {
+                            $('#' + newAudioTypeSelect).show()
+                        }
+                    })
                     $('#adv-opts-form input').on('change', function() {
                         updateSettings();
                     });
@@ -900,6 +1057,7 @@
             }
             var browseMediaType = 'movie'
             function openMovieBrowser() {
+                badgeString = false
                 browseMediaType = 'movie'
                 $('#add-media-folder-title').text('Add Movie Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
@@ -938,17 +1096,18 @@
                     })
                 }
                 if (currentFolder != 'None') {
-                    var folderLabel = $('#folder-label').children("option:selected").val()
+                    var folderLabel = badgeString || false
                     if (browseMediaType == 'movie') {
-                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + encodeURIComponent(folderLabel) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     } else {
-                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + folderLabel + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + encodeURIComponent(folderLabel) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     }
                 } else {
                     $('#add-media-folder').hide()
                 }
             }
             function openSeriesBrowser() {
+                badgeString = false
                 browseMediaType = 'series'
                 $('#add-media-folder-title').text('Add Series Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
@@ -1214,6 +1373,113 @@
                 $('#check-requests').hide()
                 $('#request-count').text('')
             }
+            function openAddBadges() {
+                badgeString = false
+                $('#badge-position').val($('#badge-position option:first').val())
+                $('#video-quality-badges').val($('#video-quality-badges option:first').val())
+                $('#hdr-badges').val($('#hdr-badges option:first').val())
+                $('#remux-badges').val($('#remux-badges option:first').val())
+                $('#audio-types').val($('#audio-types option:first').val())
+                $('#pr-types').val($('#pr-types option:first').val())
+                Array.from(document.getElementById('audio-types').options).forEach(el => {
+                    if (el.value != 'none-audio') {
+                        $('#' + el.value).hide()
+                        $('#' + el.value + ' select').val($('#' + el.value + ' select option:first').val())
+                    }
+                })
+                $('#label-text').val('')
+                $('#badge-or-label').val($('#badge-or-label option:first').val())
+                $('#choose-label-view').hide()
+                $('#choose-badge-view').show()
+                $('#choose-badge-settings').show()
+            }
+
+            function openPreviewPoster() {
+                var tempBadgeString = ''
+                if ($('#label-text').val()) {
+                    tempBadgeString = $('#label-text').val()
+                } else {
+                    var badgePosition = $('#badge-position').val()
+                    var badgeData = [
+                        $('#video-quality-badges').val(),
+                        $('#hdr-badges').val(),
+                        $('#remux-badges').val(),
+                    ].filter(function(el) { return el !== 'none' })
+
+                    var audioBadge = false
+                    Array.from(document.getElementById('audio-types').options).forEach(el => {
+                        if (el.value != 'none-audio') {
+                            if ($('#' + el.value + ' select').val() !== 'none') {
+                                audioBadge = $('#' + el.value + ' select').val()
+                            }
+                        }
+                    })
+
+                    if (audioBadge)
+                        badgeData.push(audioBadge)
+
+                    if ($('#pr-types').val() != 'none')
+                        badgeData.push($('#pr-types').val())
+
+                    if (badgeData.length)
+                        tempBadgeString = badgeData.join('-') + '-badge-' + badgePosition
+                }
+
+                $('#preview-poster-img').attr('src', '/preview' + (tempBadgeString.length ? '?label=' +  encodeURIComponent(tempBadgeString) + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
+
+                $('#preview-poster').show()
+            }
+
+            function closePreviewPoster() {
+                $('#preview-poster-img').attr('src', '')
+                $('#preview-poster').hide()
+            }
+
+            var badgeString
+
+            function cancelAddBadges() {
+                badgeString = false
+                $('#choose-badge-settings').hide()
+            }
+
+            function saveAddBadges() {
+                if ($('#label-text').val()) {
+                    badgeString = $('#label-text').val()
+                } else {
+
+                    var badgePosition = $('#badge-position').val()
+                    var badgeData = [
+                        $('#video-quality-badges').val(),
+                        $('#hdr-badges').val(),
+                        $('#remux-badges').val(),
+                    ].filter(function(el) { return el !== 'none' })
+                    var audioBadge = false
+                    Array.from(document.getElementById('audio-types').options).forEach(el => {
+                        if (el.value != 'none-audio') {
+                            if ($('#' + el.value + ' select').val() !== 'none') {
+                                audioBadge = $('#' + el.value + ' select').val()
+                            }
+                        }
+                    })
+
+                    if (audioBadge)
+                        badgeData.push(audioBadge)
+
+                    if ($('#pr-types').val() != 'none')
+                        badgeData.push($('#pr-types').val())
+
+                    if (badgeData.length)
+                        badgeString = badgeData.join('-') + '-badge-' + badgePosition
+
+                }
+
+                if ($("#edit-specific-folder").is(":visible") && specificFolder && badgeString) {
+                    $.get('/editFolderLabel?label=' + encodeURIComponent(badgeString) +'&folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {})
+                }
+
+                $('#choose-badge-settings').hide()
+            }
+
             function pollData() {
                 $.get('/pollData?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if ((data || {}).success) {
