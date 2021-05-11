@@ -121,6 +121,9 @@
                             <span class="pure-form-message-inline">
                                 &nbsp;<button type="submit" class="pure-button pure-button-primary">Load</button>
                             </span>
+                            <br/><br/><br/>
+                            <label for="remember-me" class="pure-checkbox" style="display: inline-block; opacity: 0.7">
+                                <input type="checkbox" id="remember-me" class="optionsCheckbox" value="remember" />&nbsp;&nbsp;Remember Me</label>
                         </div>
                         <br/>
                         <div id="pass-error" style="display: none; opacity: 0.7">Wrong password, try again.</div>
@@ -817,6 +820,12 @@
                     if ((data || {}).success) {
                         servPass = tempPass
                         $('#password-check').hide()
+                        if ($('#remember-me').is(':checked')) {
+                            // save pass to local storage
+                            if (((window || {}).localStorage || {}).setItem) {
+                                window.localStorage.setItem('rpdbLogin', servPass)
+                            }
+                        }
                         init()
                     } else {
                         $('#pass-error').show()
@@ -1004,7 +1013,18 @@
                         if (!data.required) {
                             init()
                         } else {
-                            $('#password-check').show()
+                            if (((window || {}).localStorage).getItem && window.localStorage.getItem('rpdbLogin')) {
+                                $.get('/checkPass?pass=' + encodeURIComponent(window.localStorage.getItem('rpdbLogin')), function(data) {
+                                    if ((data || {}).success) {
+                                        servPass = window.localStorage.getItem('rpdbLogin')
+                                        init()
+                                    } else {
+                                        $('#pass-error').show()
+                                    }
+                                })
+                            } else {
+                                $('#password-check').show()
+                            }
                         }
                     }
                 })
