@@ -236,12 +236,11 @@
         <div id="add-media-folder" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title" id="add-media-folder-title"></h1>
             <div style="text-align: center">
-                <div id="folder-label-note">If a label is chosen, it will be added to the top of all posters from this folder.<br/><br/><br/></div>
                 <div class="current-folder" onclick="pasteMediaFolder()"></div>
                 <br/>
                 <button type="button" class="pure-button pure-button-primary" onclick="addFolder()">Add Folder</button>
                 &nbsp;&nbsp;&nbsp;
-                <button type="button" class="pure-button" onclick="openAddBadges()">Add Badges / Label</button>
+                <button type="button" class="pure-button open-add-badges-button" onclick="openAddBadges()">Add Badges / Label</button>
                 &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="closeBrowser()">Close</button>
                 <br/><br/><br/>
@@ -289,7 +288,7 @@
         <div id="edit-specific-folder" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Edit Media Folder</h1>
             <div style="text-align: center">
-                <button type="button" class="pure-button" onclick="openAddBadges()">Add Badges / Label</button>
+                <button type="button" class="pure-button open-add-badges-button" onclick="openAddBadges()">Add Badges / Label</button>
                 <br/><br/><br/>
                 <b>Scanner Status</b>
                 <br/><br/>
@@ -668,6 +667,14 @@
                 <br/><br/><br/>
             </div>
         </div>
+        <div id="tier-3-only-message" class="full-page-dialog" style="display: none">
+            <div style="text-align: center">
+                <br/><br/>
+                This feature is only available with Tier 3 (or higher)
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closeTier3onlyMessage()">Close</button>
+            </div>
+        </div>
         <script>
             var needsUpdate = false
             function checkUpdate() {
@@ -742,8 +749,7 @@
                         $('#backdrops-option-one').prop('disabled', false)
                         $('#note-tier-3-textless').hide()
                         $('#textless-option-one').prop('disabled', false)
-                        $('.folder-label-form').show()
-                        $('#folder-label-note').show()
+                        $('.open-add-badges-button').attr('onclick', 'openAddBadges()');
                     } else {
                         if ($('#backdrops-option-one').is(':checked')) {
                             $('#backdrops-option-one').prop('checked', false)
@@ -753,8 +759,7 @@
                             $('#textless-option-one').prop('checked', false)
                             shouldUpdate = true
                         }
-                        $('.folder-label-form').hide()
-                        $('#folder-label-note').hide()
+                        $('.open-add-badges-button').attr('onclick', 'openTier3onlyMessage()');
                         $('#note-tier-3').show()
                         $('#backdrops-option-one').prop('disabled', true)
                         $('#note-tier-3-textless').show()
@@ -1509,6 +1514,14 @@
                         $('.scan-status').text(data.scanItems ? 'Scanning (' + data.scanItems + ' items in queue)' : 'Idle, not scanning')
                     }
                 });
+            }
+
+            function openTier3onlyMessage() {
+                $('#tier-3-only-message').show()
+            }
+
+            function closeTier3onlyMessage() {
+                $('#tier-3-only-message').hide()
             }
         </script>
     </body>
