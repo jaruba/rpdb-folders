@@ -970,7 +970,7 @@ app.get('/needsUpdate', (req, res) => {
 
 	let updateRequired = false
 
-	needle.get('https://api.github.com/repos/jaruba/rpdb-folders/releases', (err, resp, body) => {
+	needle.get('https://api.github.com/repositories/340865291/releases', (err, resp, body) => {
 		if (body && Array.isArray(body) && body.length) {
 			const tag = body[0].tag_name
 			if (semver.compare(pkgVersion, tag) === -1) {
