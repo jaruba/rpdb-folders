@@ -1123,9 +1123,9 @@
                 if (currentFolder != 'None') {
                     var folderLabel = badgeString || false
                     if (browseMediaType == 'movie') {
-                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + encodeURIComponent(folderLabel) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + (folderLabel ? '&label=' + encodeURIComponent(folderLabel) : '') + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     } else {
-                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + '&label=' + encodeURIComponent(folderLabel) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + (folderLabel ? '&label=' + encodeURIComponent(folderLabel) : '') + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     }
                 } else {
                     $('#add-media-folder').hide()
