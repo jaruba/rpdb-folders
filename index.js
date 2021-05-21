@@ -10,6 +10,8 @@ const path = require('path')
 const tnp = require('torrent-name-parser')
 const open = require('open')
 const getPort = require('get-port')
+const nameToImdb = require('name-to-imdb')
+const querystring = require('querystring')
 const config = require('./config')
 const browser = require('./browser')
 const searchStrings = require('./searchStrings')
@@ -395,40 +397,46 @@ const nameQueue = async.queue((task, cb) => {
 		folderNameToImdb(task.name, task.type, getImages, task.forced, posterExists, task.avoidYearMatch)
 	}
 
-	// check to see if folder name already contains an id
-
-	const imdbIdInFolderName = imdbMatching.idInFolder(task.name)
-
-	if (imdbIdInFolderName) {
-		console.log('Matched ' + task.name + ' by IMDB ID in folder name')
-		getImages(imdbIdInFolderName)
+	if (settings.overwriteMatches[task.type][task.name]) {
+		getImages(settings.overwriteMatches[task.type][task.name])
 	} else {
-		const tmdbIdInFolderName = tmdbMatching.idInFolder(task.name)
-		if (tmdbIdInFolderName) {
-			tmdbMatching.tmdbToImdb(tmdbIdInFolderName, task.type == 'movie' ? 'movie' : 'tv', imdbId => {
-				if (imdbId) {
-					console.log('Matched ' + task.name + ' by TMDB ID in folder name')
-					getImages(imdbId)
-				} else {
-					matchBySearch()
-				}
-			})
+
+		// check to see if folder name already contains an id
+
+		const imdbIdInFolderName = imdbMatching.idInFolder(task.name)
+
+		if (imdbIdInFolderName) {
+			console.log('Matched ' + task.name + ' by IMDB ID in folder name')
+			getImages(imdbIdInFolderName)
 		} else {
-			const tvdbIdInFolderName = tvdbMatching.idInFolder(task.name)
-			if (tvdbIdInFolderName && task.type == 'series') {
-				// only series supports converting to imdb id
-				tvdbMatching.tvdbToImdb(tvdbIdInFolderName, imdbId => {
+			const tmdbIdInFolderName = tmdbMatching.idInFolder(task.name)
+			if (tmdbIdInFolderName) {
+				tmdbMatching.tmdbToImdb(tmdbIdInFolderName, task.type == 'movie' ? 'movie' : 'tv', imdbId => {
 					if (imdbId) {
-						console.log('Matched ' + task.name + ' by TVDB ID in folder name')
+						console.log('Matched ' + task.name + ' by TMDB ID in folder name')
 						getImages(imdbId)
 					} else {
 						matchBySearch()
 					}
 				})
 			} else {
-				matchBySearch()
+				const tvdbIdInFolderName = tvdbMatching.idInFolder(task.name)
+				if (tvdbIdInFolderName && task.type == 'series') {
+					// only series supports converting to imdb id
+					tvdbMatching.tvdbToImdb(tvdbIdInFolderName, imdbId => {
+						if (imdbId) {
+							console.log('Matched ' + task.name + ' by TVDB ID in folder name')
+							getImages(imdbId)
+						} else {
+							matchBySearch()
+						}
+					})
+				} else {
+					matchBySearch()
+				}
 			}
 		}
+
 	}
 
 }, 1)
@@ -843,20 +851,12 @@ app.get('/addFixMatch', (req, res) => passwordValid(req, res, async(req, res) =>
 		res.send({ success: false, message: `The folder name cannot include "${path.sep}"` })
 		return
 	}
+
 	let imdbId
-	if (imdbPart) {
-		if (imdbPart.startsWith('http')) {
-			const matches = imdbPart.match(/\/(tt\d+)\//)
-			if (matches.length == 2) {
-				imdbId = matches[1]
-			}
-		} else if (imdbPart.startsWith('tt')) {
-			const matches = imdbPart.match(/(tt\d+)/)
-			if (matches.length == 2) {
-				imdbId = matches[1]
-			}
-		}
-	}
+
+	if (imdbPart)
+		imdbId = imdbMatching.imdbIdFromUrl(imdbPart)
+
 	if (!imdbId) {
 		res.send({ success: false, message: `Invalid IMDB URL / IMDB ID` })
 		return
@@ -1052,6 +1052,115 @@ app.get('/preview', (req, res) => passwordValid(req, res, (req, res) => {
 	const mediaLabel = req.query.label
 	const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/poster-default/' + mediaImdb + '.jpg' + (mediaLabel ? '?label=' + mediaLabel : '')
 	needle.get(posterUrl).pipe(res)
+}))
+
+function extendedDataCreatePoster(imdbId, imdbType, tmdbId, tmdbType, posterImage, cb) {
+	if ((!imdbId || !posterImage) && tmdbId && tmdbType) {
+		tmdbMatching.tmdbToImdb(tmdbId, tmdbType, (foundImdbId, foundPoster) => {
+			if (foundImdbId && !imdbId)
+				imdbId = foundImdbId
+			if (foundPoster && !posterImage)
+				posterImage = 'https://image.tmdb.org/t/p/w780' + foundPoster
+			cb(imdbId, posterImage)
+		})
+	} else if (imdbId && !posterImage) {
+		nameToImdb({ name: imdbId, type: imdbType }, (err, res, inf) => {
+			if (res == imdbId && (((inf || {}).meta || {}).image || {}).src)
+				posterImage = inf.meta.image.src.replace('._V1_.', '._V1_SX580.')
+			cb(imdbId, posterImage)
+		})
+	} else {
+		if (!imdbId) {
+			let newKey = 1
+			for (let i = 1; settings.customPosters['tt' + i]; i++) {
+				newKey = i
+			}
+			newKey += 1
+			imdbId = 'tt' + newKey
+		}
+		cb(imdbId, posterImage)
+	}
+}
+
+app.get('/create-preview', (req, res) => passwordValid(req, res, (req, res) => {
+	let imdbId
+	let tmdbId
+	let posterImage
+	let tmdbType = req.query.mediaType == 'movie' ? 'movie' : 'tv'
+
+	if (req.query.imdbUrl)
+		imdbId = imdbMatching.imdbIdFromUrl(req.query.imdbUrl)
+
+	if (req.query.img)
+		posterImage = req.query.img
+
+	if (req.query.tmdbUrl)
+		tmdbId = tmdbMatching.tmdbIdFromUrl(req.query.tmdbUrl)
+
+	extendedDataCreatePoster(imdbId, req.query.mediaType, tmdbId, tmdbType, posterImage, (imdbId, posterImage) => {
+		const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + req.query.posterType + '/custom-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
+		needle.get(posterUrl).pipe(res)
+	})
+}))
+
+app.get('/create-poster', (req, res) => passwordValid(req, res, (req, res) => {
+	let imdbId
+	let tmdbId
+	let posterImage
+	let tmdbType = req.query.mediaType == 'movie' ? 'movie' : 'tv'
+
+	if (req.query.imdbUrl)
+		imdbId = imdbMatching.imdbIdFromUrl(req.query.imdbUrl)
+
+	if (req.query.img)
+		posterImage = req.query.img
+
+	if (req.query.tmdbUrl)
+		tmdbId = tmdbMatching.tmdbIdFromUrl(req.query.tmdbUrl)
+
+	extendedDataCreatePoster(imdbId, req.query.mediaType, tmdbId, tmdbType, posterImage, async (imdbId, posterImage) => {
+		settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/' + req.query.posterType + '/custom-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
+		config.set('customPosters', settings.customPosters)
+		const mediaName = req.query.folder
+		const mediaType = req.query.mediaType
+		const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
+		res.setHeader('Content-Type', 'application/json')
+		res.send(respObj)
+	})
+}))
+
+app.get('/submit-poster', (req, res) => passwordValid(req, res, (req, res) => {
+	let imdbId
+	let tmdbId
+	let posterImage
+	let tmdbType = req.query.mediaType == 'movie' ? 'movie' : 'tv'
+
+	if (req.query.imdbUrl)
+		imdbId = imdbMatching.imdbIdFromUrl(req.query.imdbUrl)
+
+	if (req.query.img)
+		posterImage = req.query.img
+
+	if (req.query.tmdbUrl)
+		tmdbId = tmdbMatching.tmdbIdFromUrl(req.query.tmdbUrl)
+
+	extendedDataCreatePoster(imdbId, req.query.mediaType, tmdbId, tmdbType, posterImage, (imdbId, posterImage) => {
+		const queryObj = querystring.parse('ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + posterImage : '') + (req.query.extras ? '&' + req.query.extras : '')) || {}
+		if (imdbId && imdbId.length > 7) {
+			if (!queryObj.imdb)
+				queryObj.imdb = imdbId
+			if (!queryObj.imdbUrl)
+				queryObj.imdbUrl = 'https://www.imdb.com/title/' + imdbId + '/'
+		}
+		const submitStr = JSON.stringify(queryObj)
+		let buff = Buffer.from(submitStr)
+		let submitData = buff.toString('base64')
+		const submitUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/submit?imageType=' + req.query.posterType + '&data=' + encodeURIComponent(submitData)
+		needle.get(submitUrl, (err, resp, body) => {
+			res.setHeader('Content-Type', 'application/json')
+			res.send({ success: true })
+		})
+	})
 }))
 
 app.get('/checkRequests', (req, res) => passwordValid(req, res, (req, res) => {

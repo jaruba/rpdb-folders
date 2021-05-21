@@ -10,6 +10,24 @@ module.exports = {
 			}
 		})
 	},
+	imdbIdFromUrl: imdbUrl => {
+		let imdbId = false
+		const imdbPart = imdbUrl
+		if (imdbPart) {
+			if (imdbPart.startsWith('http')) {
+				const matches = imdbPart.match(/\/(tt\d+)\//)
+				if (matches.length == 2) {
+					imdbId = matches[1]
+				}
+			} else if (imdbPart.startsWith('tt')) {
+				const matches = imdbPart.match(/(tt\d+)/)
+				if (matches.length == 2) {
+					imdbId = matches[1]
+				}
+			}
+		}
+		return imdbId
+	},
 	idInFolder: folderName => {
 		folderName = folderName || ''
 		folderName = folderName.toLowerCase()

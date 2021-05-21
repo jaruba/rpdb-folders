@@ -7,7 +7,7 @@ const tmdbKey = require('../tmdbKey').key
 function tmdbToImdb(tmdbId, tmdbType, cb) {
 	needle.get('https://api.themoviedb.org/3/' + tmdbType + '/' + tmdbId + '?api_key=' + tmdbKey + '&append_to_response=external_ids', (err, resp, body) => {
 		if (((body || {}).external_ids || {}).imdb_id) {
-			cb(body.external_ids.imdb_id)
+			cb(body.external_ids.imdb_id, body.poster_path)
 		} else cb(false)
 	})
 }
@@ -42,6 +42,21 @@ function folderNameFromTMDBtoImdb(obj, cb) {
 module.exports = {
 	tmdbToImdb,
 	folderNameFromTMDBtoImdb,
+	tmdbIdFromUrl: tmdbUrl => {
+		let tmdbTemp = tmdbUrl
+		tmdbTemp = tmdbTemp.replace('https://www.themoviedb.org/movie/', '')
+		tmdbTemp = tmdbTemp.replace('https://themoviedb.org/movie/', '')
+		tmdbTemp = tmdbTemp.replace('http://www.themoviedb.org/movie/', '')
+		tmdbTemp = tmdbTemp.replace('http://themoviedb.org/movie/', '')
+		tmdbTemp = tmdbTemp.replace('https://www.themoviedb.org/tv/', '')
+		tmdbTemp = tmdbTemp.replace('https://themoviedb.org/tv/', '')
+		tmdbTemp = tmdbTemp.replace('http://www.themoviedb.org/tv/', '')
+		tmdbTemp = tmdbTemp.replace('http://themoviedb.org/tv/', '')
+		let tmdbId = false
+		if (tmdbTemp.includes('-'))
+			tmdbId = tmdbTemp.split('-')[0]
+		return tmdbId
+	},
 	idInFolder: folderName => {
 		folderName = folderName || ''
 		folderName = folderName.toLowerCase()

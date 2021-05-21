@@ -98,6 +98,12 @@
                 max-width: 80%;
                 background-color: rgba(0,0,0,0.1);
             }
+            #preview-create-poster-img {
+                width: 290px;
+                height: 429px;
+                max-width: 80%;
+                background-color: rgba(0,0,0,0.1);
+            }
         </style>
     </head>
     <body>
@@ -354,6 +360,8 @@
                 <button type="button" class="pure-button" onclick="openCustomPoster()">Custom Poster</button>
                 <br/><br/>
                 <button type="button" class="pure-button" onclick="updateRatingsPoster()">Update Ratings</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="button" class="pure-button" onclick="openCreatePoster()">Create Poster</button>
                 <br/>
                 <div id="update-ratings-poster-msg" style="display: none; opacity: 0.7"></div>
                 <br/>
@@ -579,6 +587,134 @@
                 <img id="preview-poster-img" src="">
                 <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="closePreviewPoster()">Back</button>
+            </div>
+        </div>
+        <div id="create-poster" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Create Poster</h1>
+            <div style="text-align: center">
+                <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
+                    Here you can create a custom poster with user defined ratings. After creating the poster you can either save it locally for the designated folder or submit it to RPDB so others can download it too.
+                    <br/><br/>
+                    <b>All fields are optional.</b> If a Image URL is not chosen, the poster will be extracted based on IMDB or TMDB URL.
+                </div>
+                <form class="pure-form">
+                    <br/>
+                    <input type="text" id="create-poster-img-url" placeholder="Image URL" />
+                    <br/><br/>
+                    <input type="text" id="create-poster-tmdb-url" placeholder="TMDB URL" />
+                    <br/><br/>
+                    <input type="text" id="create-poster-imdb-url" placeholder="IMDB URL" />
+                    <br/><br/>
+                    <input type="text" id="create-poster-mc-url" placeholder="Metacritic URL" />
+                    <br/><br/>
+                    <input type="text" id="create-poster-rt-url" placeholder="Rotten Tomatoes URL" />
+                    <br/><br/>
+                    <b>Poster Type</b><br/><br/>
+                    <select id="create-poster-type">
+                        <option value="poster-default">With Ratings (Default)</option>
+                        <option value="poster-certs">With Ratings + Certifications</option>
+                        <option value="poster-rt">With Rotten Tomatoes + Audience Ratings</option>
+                        <option value="poster-mc">With Metacritic + Audience Ratings</option>
+                    </select>
+                    <div id="create-poster-default">
+                        <br/>
+                        <b>IMDB Rating (from 1.0 to 10.0)</b><br/><br/>
+                        <input type="text" id="create-poster-default-imdb" placeholder="IMDB Rating" />
+                        <br/><br/>
+                        <b>Metacritic (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-default-mc" placeholder="Metacritic Rating" />
+                        <br/><br/>
+                        <b>Rotten Tomatoes (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-default-rt" placeholder="Rotten Tomatoes Rating" />
+                        <br/><br/>
+                    </div>
+                    <div id="create-poster-certs" style="display: none">
+                        <br/>
+                        <b>IMDB Rating (from 1.0 to 10.0)</b><br/><br/>
+                        <input type="text" id="create-poster-certs-imdb" placeholder="IMDB Rating" />
+                        <br/><br/>
+                        <b>Metacritic (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-certs-mc" placeholder="Metacritic Rating" />
+                        <br/><br/>
+                        <b>Metacritic Certification</b><br/><br/>
+                        <select id="create-poster-certs-mc-cert">
+                            <option value="none">None</option>
+                            <option value="must-see">Must See</option>
+                        </select>
+                        <br/><br/>
+                        <b>Rotten Tomatoes (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-certs-rt" placeholder="Rotten Tomatoes Rating" />
+                        <br/><br/>
+                        <b>Rotten Tomatoes Certification</b><br/><br/>
+                        <select id="create-poster-certs-rt-cert">
+                            <option value="none">None</option>
+                            <option value="certified-fresh">Certified Fresh</option>
+                            <option value="spoiled">Spoiled</option>
+                        </select>
+                        <br/><br/>
+                    </div>
+                    <div id="create-poster-rt" style="display: none">
+                        <br/>
+                        <b>IMDB Rating (from 1.0 to 10.0)</b><br/><br/>
+                        <input type="text" id="create-poster-rt-imdb" placeholder="IMDB Rating" />
+                        <br/><br/>
+                        <b>Rotten Tomatoes (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-rt-rt" placeholder="Rotten Tomatoes Rating" />
+                        <br/><br/>
+                        <b>Rotten Tomatoes Certification</b><br/><br/>
+                        <select id="create-poster-rt-rt-cert">
+                            <option value="none">None</option>
+                            <option value="certified-fresh">Certified Fresh</option>
+                            <option value="spoiled">Spoiled</option>
+                        </select>
+                        <br/><br/>
+                        <b>Rotten Tomatoes Audience (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-rt-rtaudience" placeholder="Rotten Tomatoes Audience Rating" />
+                        <br/><br/>
+                        <b>Rotten Tomatoes Audience Certification</b><br/><br/>
+                        <select id="create-poster-rt-rtaudience-cert">
+                            <option value="none">None</option>
+                            <option value="spilled">Spilled</option>
+                        </select>
+                        <br/><br/>
+                    </div>
+                    <div id="create-poster-mc" style="display: none">
+                        <br/>
+                        <b>IMDB Rating (from 1.0 to 10.0)</b><br/><br/>
+                        <input type="text" id="create-poster-mc-imdb" placeholder="IMDB Rating" />
+                        <br/><br/>
+                        <b>Metacritic (from 1 to 100)</b><br/><br/>
+                        <input type="text" id="create-poster-mc-mc" placeholder="Metacritic Rating" />
+                        <br/><br/>
+                        <b>Metacritic Certification</b><br/><br/>
+                        <select id="create-poster-mc-mc-cert">
+                            <option value="none">None</option>
+                            <option value="must-see">Must See</option>
+                        </select>
+                        <br/><br/>
+                        <b>Metacritic Audience (from 1.0 to 10.0)</b><br/><br/>
+                        <input type="text" id="create-poster-mc-mcaudience" placeholder="Metacritic Audience Rating" />
+                        <br/><br/>
+                    </div>
+                </form>
+                <div style="text-align: center">
+                    <button type="button" class="pure-button" onclick="openPreviewCreatePoster()">Preview Poster</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <button type="button" class="pure-button" onclick="cancelCreatePoster()">Cancel</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <button type="button" class="pure-button" onclick="submitCreatePoster()">Submit</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <button type="button" class="pure-button pure-button-primary" onclick="saveCreatePoster()">Save &amp; Close</button>
+                    <br/><br/><div id="submit-poster-success"><b>Thank you for submitting your poster to RPDB!</b></div><br/><br/><br/>
+                </div>
+            </div>
+        </div>
+        <div id="preview-create-poster" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Preview Poster</h1>
+            <div style="text-align: center">
+                <img id="preview-create-poster-img" src="">
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closePreviewCreatePoster()">Back</button>
             </div>
         </div>
         <div id="scan-settings" class="full-page-dialog" style="display: none">
@@ -955,6 +1091,14 @@
                             $('#' + newAudioTypeSelect).show()
                         }
                     })
+                    $('#create-poster-type').on('change', function() {
+                        var newCreatePosterType = $('#create-poster-type').val()
+                        Array.from(document.getElementById('create-poster-type').options).forEach(el => {
+                            $('#create-' + el.value).hide()
+                            $('#create-' + el.value + ' select').val($('#create-' + el.value + ' select option:first').val())
+                        })
+                        $('#create-' + newCreatePosterType).show()
+                    })
                     $('#adv-opts-form input').on('change', function() {
                         updateSettings();
                     });
@@ -1148,6 +1292,230 @@
             }
             function closeEditSpecificFolder() {
                 $('#edit-specific-folder').hide()
+            }
+            function openCreatePoster() {
+                $('#submit-poster-success').hide()
+
+                $('#create-poster-img-url').val('')
+                $('#create-poster-tmdb-url').val('')
+                $('#create-poster-imdb-url').val('')
+                $('#create-poster-mc-url').val('')
+                $('#create-poster-rt-url').val('')
+
+                $('#create-poster-type').val($('#create-poster-type option:first').val())
+
+                $('#create-poster-default').show()
+                $('#create-poster-certs').hide()
+                $('#create-poster-mc').hide()
+                $('#create-poster-rt').hide()
+
+                $('#create-poster-default-imdb').val('')
+                $('#create-poster-default-mc').val('')
+                $('#create-poster-default-rt').val('')
+
+                $('#create-poster-certs-imdb').val('')
+                $('#create-poster-certs-mc').val('')
+                $('#create-poster-certs-rt').val('')
+                $('#create-poster-certs-mc-cert').val($('#create-poster-certs-mc-cert option:first').val())
+                $('#create-poster-certs-rt-cert').val($('#create-poster-certs-rt-cert option:first').val())
+
+                $('#create-poster-rt-imdb').val('')
+                $('#create-poster-rt-rt').val('')
+                $('#create-poster-rt-rtaudience').val('')
+                $('#create-poster-rt-rt-cert').val($('#create-poster-rt-rt-cert option:first').val())
+                $('#create-poster-rt-rtaudience-cert').val($('#create-poster-rt-rtaudience-cert option:first').val())
+
+                $('#create-poster-mc-imdb').val('')
+                $('#create-poster-mc-mc').val('')
+                $('#create-poster-mc-mcaudience').val('')
+                $('#create-poster-mc-mc-cert').val($('#create-poster-mc-mc-cert option:first').val())
+
+                $('#create-poster').show()
+            }
+            function openPreviewCreatePoster() {
+                var imgUrl = $('#create-poster-img-url').val()
+                var tmdbUrl = $('#create-poster-tmdb-url').val()
+                var imdbUrl = $('#create-poster-imdb-url').val()
+                var mcUrl = $('#create-poster-mc-url').val()
+                var rtUrl = $('#create-poster-rt-url').val()
+
+                var posterType = $('#create-poster-type').val()
+                var imdbScore = $('#create-'+posterType+'-imdb').val()
+                var rtScore = $('#create-'+posterType+'-rt').val()
+                var mcScore = $('#create-'+posterType+'-mc').val()
+                var rtAudScore = $('#create-'+posterType+'-rtaudience').val()
+                var mcAudScore = $('#create-'+posterType+'-mcaudience').val()
+                var rtCert = $('#create-'+posterType+'-rt-cert').val()
+                var mcCert = $('#create-'+posterType+'-mc-cert').val()
+                var rtAudCert = $('#create-'+posterType+'-rtaudience-cert').val()
+
+                var ratingString = ''
+
+                var extras = ''
+
+                if (posterType == 'poster-default') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                } else if (posterType == 'poster-certs') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else if (posterType == 'poster-rt') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + rtAudScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (rtAudCert == 'spilled' ? 'rtAudienceCert=-1' : '')
+                } else if (posterType == 'poster-mc') {
+                    ratingString = imdbScore + '|' + mcScore + '|' + mcAudScore
+                    extras += (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else {
+                    ratingString = '||'
+                }
+
+                if (tmdbUrl)
+                    extras += (extras ? '&' : '') + 'tmdbUrl=' + encodeURIComponent(tmdbUrl)
+
+                if (imdbUrl)
+                    extras += (extras ? '&' : '') + 'imdbUrl=' + encodeURIComponent(imdbUrl)
+
+                if (rtUrl)
+                    extras += (extras ? '&' : '') + 'rtUrl=' + encodeURIComponent(rtUrl)
+
+                if (mcUrl)
+                    extras += (extras ? '&' : '') + 'mcUrl=' + encodeURIComponent(mcUrl)
+
+                if (imgUrl)
+                    extras += (extras ? '&' : '') + 'img=' + encodeURIComponent(imgUrl)
+
+                extras += (extras ? '&' : '') + 'mediaType=' + searchFolderType
+
+                $('#preview-create-poster-img').attr('src', '/create-preview?ratings=' + ratingString + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''))
+
+                $('#preview-create-poster').show()
+            }
+            function saveCreatePoster() {
+                var imgUrl = $('#create-poster-img-url').val()
+                var tmdbUrl = $('#create-poster-tmdb-url').val()
+                var imdbUrl = $('#create-poster-imdb-url').val()
+                var mcUrl = $('#create-poster-mc-url').val()
+                var rtUrl = $('#create-poster-rt-url').val()
+
+                var posterType = $('#create-poster-type').val()
+                var imdbScore = $('#create-'+posterType+'-imdb').val()
+                var rtScore = $('#create-'+posterType+'-rt').val()
+                var mcScore = $('#create-'+posterType+'-mc').val()
+                var rtAudScore = $('#create-'+posterType+'-rtaudience').val()
+                var mcAudScore = $('#create-'+posterType+'-mcaudience').val()
+                var rtCert = $('#create-'+posterType+'-rt-cert').val()
+                var mcCert = $('#create-'+posterType+'-mc-cert').val()
+                var rtAudCert = $('#create-'+posterType+'-rtaudience-cert').val()
+
+                var ratingString = ''
+
+                var extras = ''
+
+                if (posterType == 'poster-default') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                } else if (posterType == 'poster-certs') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else if (posterType == 'poster-rt') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + rtAudScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (rtAudCert == 'spilled' ? 'rtAudienceCert=-1' : '')
+                } else if (posterType == 'poster-mc') {
+                    ratingString = imdbScore + '|' + mcScore + '|' + mcAudScore
+                    extras += (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else {
+                    ratingString = '||'
+                }
+
+                if (tmdbUrl)
+                    extras += (extras ? '&' : '') + 'tmdbUrl=' + encodeURIComponent(tmdbUrl)
+
+                if (imdbUrl)
+                    extras += (extras ? '&' : '') + 'imdbUrl=' + encodeURIComponent(imdbUrl)
+
+                if (rtUrl)
+                    extras += (extras ? '&' : '') + 'rtUrl=' + encodeURIComponent(rtUrl)
+
+                if (mcUrl)
+                    extras += (extras ? '&' : '') + 'mcUrl=' + encodeURIComponent(mcUrl)
+
+                if (imgUrl)
+                    extras += (extras ? '&' : '') + 'img=' + encodeURIComponent(imgUrl)
+
+                extras += (extras ? '&' : '') + 'mediaType=' + searchFolderType
+
+                $.get('/create-poster?ratings=' + ratingString + '&folder=' + encodeURIComponent(searchFolderName) + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''), () => {
+                    cancelCreatePoster()
+                    openFolderPosterEdit(false, searchFolderName)
+                })
+            }
+            function submitCreatePoster() {
+                var imgUrl = $('#create-poster-img-url').val()
+                var tmdbUrl = $('#create-poster-tmdb-url').val()
+                var imdbUrl = $('#create-poster-imdb-url').val()
+                var mcUrl = $('#create-poster-mc-url').val()
+                var rtUrl = $('#create-poster-rt-url').val()
+
+                var posterType = $('#create-poster-type').val()
+                var imdbScore = $('#create-'+posterType+'-imdb').val()
+                var rtScore = $('#create-'+posterType+'-rt').val()
+                var mcScore = $('#create-'+posterType+'-mc').val()
+                var rtAudScore = $('#create-'+posterType+'-rtaudience').val()
+                var mcAudScore = $('#create-'+posterType+'-mcaudience').val()
+                var rtCert = $('#create-'+posterType+'-rt-cert').val()
+                var mcCert = $('#create-'+posterType+'-mc-cert').val()
+                var rtAudCert = $('#create-'+posterType+'-rtaudience-cert').val()
+
+                var ratingString = ''
+
+                var extras = ''
+
+                if (posterType == 'poster-default') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                } else if (posterType == 'poster-certs') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + mcScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else if (posterType == 'poster-rt') {
+                    ratingString = imdbScore + '|' + rtScore + '|' + rtAudScore
+                    extras += (rtCert == 'certified-fresh' ? 'rtCert=1' : rtCert == 'spoiled' ? 'rtCert=-1' : '')
+                    extras += (extras ? '&' : '') + (rtAudCert == 'spilled' ? 'rtAudienceCert=-1' : '')
+                } else if (posterType == 'poster-mc') {
+                    ratingString = imdbScore + '|' + mcScore + '|' + mcAudScore
+                    extras += (mcCert == 'must-see' ? 'mcCert=1' : '')
+                } else {
+                    ratingString = '||'
+                }
+
+                if (tmdbUrl)
+                    extras += (extras ? '&' : '') + 'tmdbUrl=' + encodeURIComponent(tmdbUrl)
+
+                if (imdbUrl)
+                    extras += (extras ? '&' : '') + 'imdbUrl=' + encodeURIComponent(imdbUrl)
+
+                if (rtUrl)
+                    extras += (extras ? '&' : '') + 'rtUrl=' + encodeURIComponent(rtUrl)
+
+                if (mcUrl)
+                    extras += (extras ? '&' : '') + 'mcUrl=' + encodeURIComponent(mcUrl)
+
+                if (imgUrl)
+                    extras += (extras ? '&' : '') + 'img=' + encodeURIComponent(imgUrl)
+
+                extras += (extras ? '&' : '') + 'mediaType=' + searchFolderType
+
+                $.get('/submit-poster?ratings=' + ratingString + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''), () => {
+                    $('#submit-poster-success').show()
+                })
+            }
+            function closePreviewCreatePoster() {
+                $('#preview-create-poster').hide()
+                $('#preview-create-poster-img').attr('src', '')
+            }
+            function cancelCreatePoster() {
+                $('#create-poster').hide()
             }
             function forceOverwriteScanSpecific() {
                 $.get('/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=' + (specificFolderMovie ? 'movie' : 'series') + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
