@@ -461,55 +461,77 @@ function startFetchingPosters(theseFolders, type, forced, avoidYearMatch) {
 	}
 }
 
-const watcher = chokidar.watch('dir', {
-  ignored: /(^|[\/\\])\../, // ignore dotfiles
-  persistent: true,
-  depth: 0,
-  usePolling: isDocker(),
-})
+let watcher = {}
 
-watcher.on('addDir', el => {
-	let type
-	for (const [folderType, folders] of Object.entries(settings.mediaFolders)) {
-		if (folders.includes(el))
-			return
-		if (!type)
-			folders.some(mediaFolder => {
-				if (el.startsWith(mediaFolder)) {
-					type = folderType
-					return true
-				}
-			})
-	}
-	const name = el.split(path.sep).pop()
-	console.log(`Directory ${name} has been added to ${type}`)
-	nameQueue.push({ name, folder: el, type, forced: false }) 
-})
+function startWatcher() {
 
-watcher.on('add', el => {
-	const name = el.split(path.sep).pop()
-	if (!fileHelper.isVideo(name)) {
-		return
-	}
-	let type
-	for (const [folderType, folders] of Object.entries(settings.mediaFolders)) {
-		if (folders.includes(el))
+	watcher = chokidar.watch('dir', {
+		ignored: /(^|[\/\\])\../, // ignore dotfiles
+		persistent: true,
+		depth: settings.watchFolderDepth || 0,
+		usePolling: isDocker(),
+	})
+
+	watcher.on('addDir', el => {
+		let type
+		let parentFolder
+		for (const [folderType, folders] of Object.entries(settings.mediaFolders)) {
+			if (folders.includes(el))
+				return
+			if (!type)
+				folders.some(mediaFolder => {
+					if (el.startsWith(mediaFolder + path.sep)) {
+						type = folderType
+						parentFolder = mediaFolder
+						return true
+					}
+				})
+		}
+		if (settings.watchFolderDepth) {
+			if (type == 'series') {
+				// only allow increasing folder depth for movies
+				return
+			}
+			const folderPart = el.replace(parentFolder + path.sep, '')
+			if (folderPart.includes(path.sep)) {
+				// if folder depth has been increased, only process the primary folder
+				el = path.join(parentFolder, folderPart.split(path.sep)[0])
+			}
+		}
+		const folderPart = el.replace(parentFolder + path.sep, '')
+		const name = el.split(path.sep).pop()
+		console.log(`Directory ${name} has been added to ${type}`)
+		nameQueue.push({ name, folder: el, type, forced: false }) 
+	})
+
+	watcher.on('add', el => {
+		const name = el.split(path.sep).pop()
+		if (!fileHelper.isVideo(name)) {
 			return
-		if (!type)
-			folders.some(mediaFolder => {
-				if (el.startsWith(mediaFolder)) {
-					type = folderType
-					return true
-				}
-			})
-	}
-	if (type !== 'movie') {
-		return
-	}
-	console.log(`File ${name} has been added to ${type}`)
-	const nameNoExt = fileHelper.removeExtension(name)
-	nameQueue.push({ name, folder: path.dirname(el), type, forced: false, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
-})
+		}
+		let type
+		for (const [folderType, folders] of Object.entries(settings.mediaFolders)) {
+			if (folders.includes(el))
+				return
+			if (!type)
+				folders.some(mediaFolder => {
+					if (el.startsWith(mediaFolder)) {
+						type = folderType
+						return true
+					}
+				})
+		}
+		if (type !== 'movie') {
+			return
+		}
+		console.log(`File ${name} has been added to ${type}`)
+		const nameNoExt = fileHelper.removeExtension(name)
+		nameQueue.push({ name, folder: path.dirname(el), type, forced: false, isFile: true, posterName: nameNoExt + '.jpg', backdropName: nameNoExt + '-fanart.jpg' }) 
+	})
+
+	return Promise.resolve()
+
+}
 
 function shouldOverwrite(type) {
 	// this logic is put in place so users do not
@@ -1297,11 +1319,12 @@ setTimeout(async () => {
 	port = await getPort({ port: config.get('port') })
 	app.listen(port, async () => {
 		settings = config.getAll()
+		const httpServer = `http://127.0.0.1:${port}/`
+		console.log(`RPDB Folders running at: ${httpServer}`)
+		await startWatcher()
 		if (settings.apiKey) {
 			await validateApiKey()
 		}
-		const httpServer = `http://127.0.0.1:${port}/`
-		console.log(`RPDB Folders running at: ${httpServer}`)
 		try {
 			await open(httpServer)
 		} catch(e) {}

@@ -43,6 +43,7 @@ let map = {
     scanOrder: 'imdb-tmdb',
     cacheMatches: true,
     pass: false,
+    watchFolderDepth: 0,
 }
 
 function loadUserConfig(err, obj) {
