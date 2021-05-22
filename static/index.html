@@ -338,6 +338,9 @@
             <div style="text-align: center">
                 <form class="pure-form">
                     <input id="search-folder-input" placeholder="Search">
+                    &nbsp;&nbsp;
+                    <select id="choose-search-folder">
+                    </select>
                 </form>
                 <br/>
                 <button type="button" class="pure-button" onclick="closeSearchFolder()">Close</button>
@@ -1105,6 +1108,10 @@
                         })
                         $('#create-' + newCreatePosterType).show()
                     })
+                    $('#choose-search-folder').on('change', function() {
+                        var chosenSearchFolderName = $('#choose-search-folder').val()
+                        openPosterEdit(searchFolderType, chosenSearchFolderName != 'all-folder' ? chosenSearchFolderName : false)
+                    })
                     $('#adv-opts-form input').on('change', function() {
                         updateSettings();
                     });
@@ -1599,9 +1606,9 @@
             function capitalizeFirstLetter(string) {
               return string.charAt(0).toUpperCase() + string.slice(1);
             }
-            function openPosterEdit(type) {
+            function openPosterEdit(type, searchFolderName) {
                 searchFolderType = type
-                $.get('/searchStrings?type=' + type + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
+                $.get('/searchStrings?type=' + type + (searchFolderName ? '&searchfolder=' + searchFolderName : '') + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (((data || {}).folders || '').length) {
                         searchStrings = data
                         $('#choose-media-folder-type').hide()
@@ -1609,6 +1616,12 @@
                         $('#search-folder').find('h1.dialog-title').text('Search ' + capitalizeFirstLetter(type) + ' Folders')
                         $('#search-folder').show()
                         $('.search-list').html('')
+                        $('#choose-search-folder').empty()
+                        $('#choose-search-folder').append(new Option('All Folders', 'all-folders'))
+
+                        data.folderChoices.forEach(function(el) {
+                            $('#choose-search-folder').append(new Option(el, el, false, !!(el == searchFolderName)))
+                        })
                         setTimeout(() => {
                             $('#search-folder-input').select()
                         })

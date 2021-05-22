@@ -1037,7 +1037,20 @@ app.get('/searchStrings', (req, res) => passwordValid(req, res, async (req, res)
 		internalError()
 		return
 	}
-	const searchStringsResp = await searchStrings(settings.mediaFolders[mediaType], mediaType)
+
+	let foundSearchFolderName = false
+
+	if (req.query.searchfolder) {
+		settings.mediaFolders[mediaType].some(el => {
+			if (el.endsWith(path.sep + req.query.searchfolder)) {
+				foundSearchFolderName = el
+				return true
+			}
+		})
+	}
+
+	const searchStringsResp = await await searchStrings(foundSearchFolderName ? [foundSearchFolderName] : settings.mediaFolders[mediaType], mediaType)
+	searchStringsResp.folderChoices = (settings.mediaFolders[mediaType] || []).map(el => el.split(path.sep).pop())
 	res.setHeader('Content-Type', 'application/json')
 	res.send(searchStringsResp)	
 }))
