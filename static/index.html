@@ -1608,6 +1608,7 @@
                         $('#search-folder-input').val('')
                         $('#search-folder').find('h1.dialog-title').text('Search ' + capitalizeFirstLetter(type) + ' Folders')
                         $('#search-folder').show()
+                        $('.search-list').html('')
                         setTimeout(() => {
                             $('#search-folder-input').select()
                         })
