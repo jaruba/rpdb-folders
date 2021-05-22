@@ -596,6 +596,8 @@
                     Here you can create a custom poster with user defined ratings. After creating the poster you can either save it locally for the designated folder or submit it to RPDB so others can download it too.
                     <br/><br/>
                     <b>All fields are optional.</b> If a Image URL is not chosen, the poster will be extracted based on IMDB or TMDB URL.
+                    <br/><br/>
+                    <b id="create-poster-folder-name"></b>
                 </div>
                 <form class="pure-form">
                     <br/>
@@ -1296,6 +1298,8 @@
                 $('#edit-specific-folder').hide()
             }
             function openCreatePoster() {
+                $('#create-poster-folder-name').text(searchFolderName)
+
                 $('#submit-poster-success').hide()
 
                 $('#create-poster-img-url').val('')
