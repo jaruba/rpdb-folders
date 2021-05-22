@@ -365,6 +365,8 @@
                 <br/>
                 <div id="update-ratings-poster-msg" style="display: none; opacity: 0.7"></div>
                 <br/>
+                <button type="button" class="pure-button" onclick="backToSearch()">Back</button>
+                &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="closeFolderPosterEdit()">Close</button>
             </div>
         </div>
@@ -1632,6 +1634,12 @@
             }
             function closeFolderPosterEdit() {
                 $('#folder-poster-edit').hide()
+            }
+            function backToSearch() {
+                openPosterEdit(searchFolderType)
+                setTimeout(() => {
+                    $('#folder-poster-edit').hide()
+                }, 100)
             }
             function addFixMatch() {
                 var imdbUrl = $('#imdb-url').val()
