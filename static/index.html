@@ -693,7 +693,7 @@
         <div id="preview-create-poster" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Preview Poster</h1>
             <div style="text-align: center">
-                <img id="preview-create-poster-img" src="">
+                <img id="preview-create-poster-img" src="" onerror="if (this.src) { this.src='/missing-poster.png' }">
                 <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="closePreviewCreatePoster()">Back</button>
             </div>
@@ -1467,7 +1467,7 @@
 
                 extras += (extras ? '&' : '') + 'mediaType=' + searchFolderType
 
-                $('#preview-create-poster-img').attr('src', '/create-preview?ratings=' + ratingString + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''))
+                $('#preview-create-poster-img').attr('src', '').attr('src', '/create-preview?ratings=' + ratingString + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''))
 
                 $('#preview-create-poster').show()
             }
