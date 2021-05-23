@@ -164,34 +164,8 @@
                 <div id="update-check" style="display: none; border: 1px solid rgba(0,0,0,0.3); padding: 20px; margin-bottom: 35px; font-weight: bold"></div>
                 <form class="pure-form pure-form-aligned" id="adv-opts-form">
                     <div id="adv-form">
-                        <b>Poster Type</b><br/><br/>
-                        <div id="note-tier-3-textless">
-                            <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to prefer textless posters.</i>
-                            <br/><br/>
-                        </div>
-                        <label for="textless-option-one" class="pure-checkbox" style="display: inline-block">
-                            <input type="checkbox" id="textless-option-one" class="optionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                        <button type="button" class="pure-button" onclick="openPosterSettings()">Poster Settings</button>
                         <br/><br/>
-                        <div id="note-tier-0" style="display: none">
-                            <i style="opacity: 0.7">Tier 0 API keys can only use the default poster type.</i>
-                            <br/><br/>
-                        </div>
-                        <div id="note-tier-1" style="display: none">
-                            <i style="opacity: 0.7">Tier 1 API keys can only use the default poster type.</i>
-                            <br/><br/>
-                        </div>
-                        <label for="checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
-                            <input type="radio" id="checkbox-radio-option-one" name="optionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
-                        &nbsp;&nbsp;
-                        <label for="checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
-                            <input type="radio" id="checkbox-radio-option-two" name="optionsRadios" value="poster-certs" /> With Ratings + Certifications</label>
-                        <br/>
-                        <label for="checkbox-radio-option-three" class="pure-radio" style="display: inline-block">
-                            <input type="radio" id="checkbox-radio-option-three" name="optionsRadios" value="poster-rt" /> With Rotten Tomatoes + Audience Ratings</label>
-                        &nbsp;&nbsp;
-                        <label for="checkbox-radio-option-four" class="pure-radio" style="display: inline-block">
-                            <input type="radio" id="checkbox-radio-option-four" name="optionsRadios" value="poster-mc" /> With Metacritic + Audience Ratings</label>
-                        <br/><br/><br/>
                         <b>Backdrops</b><br/><br/>
                         <div id="note-tier-3">
                             <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to download backdrops.</i>
@@ -724,6 +698,60 @@
                 <button type="button" class="pure-button" onclick="closePreviewCreatePoster()">Back</button>
             </div>
         </div>
+        <div id="poster-settings" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Poster Settings</h1>
+            <div style="text-align: center">
+                <div id="note-tier-3-textless">
+                    <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to prefer textless posters.</i>
+                    <br/><br/><br/>
+                </div>
+                <div id="note-tier-0" style="display: none">
+                    <i style="opacity: 0.7">Tier 0 API keys can only use the default poster type.</i>
+                    <br/><br/><br/>
+                </div>
+                <div id="note-tier-1" style="display: none">
+                    <i style="opacity: 0.7">Tier 1 API keys can only use the default poster type.</i>
+                    <br/><br/><br/>
+                </div>
+                <form class="pure-form pure-form-aligned" id="poster-type-opts-form">
+                    <b>Movie Posters</b>
+                    <br/><br/><br/>
+                    <label for="movie-textless-option-one" class="pure-checkbox" style="display: inline-block">
+                        <input type="checkbox" id="movie-textless-option-one" class="movieOptionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                    <br/><br/><br/>
+                    <label for="movie-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="movie-checkbox-radio-option-one" name="movieOptionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
+                    &nbsp;&nbsp;
+                    <label for="movie-checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="movie-checkbox-radio-option-two" name="movieOptionsRadios" value="poster-certs" /> With Ratings + Certifications</label>
+                    <br/><br/>
+                    <label for="movie-checkbox-radio-option-three" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="movie-checkbox-radio-option-three" name="movieOptionsRadios" value="poster-rt" /> With Rotten Tomatoes + Audience Ratings</label>
+                    &nbsp;&nbsp;
+                    <label for="movie-checkbox-radio-option-four" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="movie-checkbox-radio-option-four" name="movieOptionsRadios" value="poster-mc" /> With Metacritic + Audience Ratings</label>
+                    <br/><br/><br/><br/>
+                    <b>Series Posters</b>
+                    <br/><br/><br/>
+                    <label for="series-textless-option-one" class="pure-checkbox" style="display: inline-block">
+                        <input type="checkbox" id="series-textless-option-one" class="seriesOptionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                    <br/><br/><br/>
+                    <label for="series-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="series-checkbox-radio-option-one" name="seriesOptionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
+                    &nbsp;&nbsp;
+                    <label for="series-checkbox-radio-option-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="series-checkbox-radio-option-two" name="seriesOptionsRadios" value="poster-certs" /> With Ratings + Certifications</label>
+                    <br/><br/>
+                    <label for="series-checkbox-radio-option-three" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="series-checkbox-radio-option-three" name="seriesOptionsRadios" value="poster-rt" /> With Rotten Tomatoes + Audience Ratings</label>
+                    &nbsp;&nbsp;
+                    <label for="series-checkbox-radio-option-four" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="series-checkbox-radio-option-four" name="seriesOptionsRadios" value="poster-mc" /> With Metacritic + Audience Ratings</label>
+                </form>
+                <br/><br/><br/><br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="closePosterSettings()">Save &amp; Close</button>
+            </div>
+        </div>
         <div id="scan-settings" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Scan Settings</h1>
             <div style="text-align: center">
@@ -873,25 +901,36 @@
                         $('#note-tier-1').show()
                     }
                     if (tier == 1 || tier == 0) {
-                        if (!$('#checkbox-radio-option-one').is(':checked')) {
-                            $('#checkbox-radio-option-one').prop('checked', true)
+                        if (!$('#movie-checkbox-radio-option-one').is(':checked')) {
+                            $('#movie-checkbox-radio-option-one').prop('checked', true)
                             shouldUpdate = true
                         }
-                        $('#checkbox-radio-option-two').prop('disabled', true)
-                        $('#checkbox-radio-option-three').prop('disabled', true)
-                        $('#checkbox-radio-option-four').prop('disabled', true)
+                        $('#movie-checkbox-radio-option-two').prop('disabled', true)
+                        $('#movie-checkbox-radio-option-three').prop('disabled', true)
+                        $('#movie-checkbox-radio-option-four').prop('disabled', true)
+                        if (!$('#series-checkbox-radio-option-one').is(':checked')) {
+                            $('#series-checkbox-radio-option-one').prop('checked', true)
+                            shouldUpdate = true
+                        }
+                        $('#series-checkbox-radio-option-two').prop('disabled', true)
+                        $('#series-checkbox-radio-option-three').prop('disabled', true)
+                        $('#series-checkbox-radio-option-four').prop('disabled', true)
                         $('#poster-lang-allowed').hide()
                         $('#poster-lang-disallowed').show()
                     } else {
-                        $('#checkbox-radio-option-two').prop('disabled', false)
-                        $('#checkbox-radio-option-three').prop('disabled', false)
-                        $('#checkbox-radio-option-four').prop('disabled', false)
+                        $('#movie-checkbox-radio-option-two').prop('disabled', false)
+                        $('#movie-checkbox-radio-option-three').prop('disabled', false)
+                        $('#movie-checkbox-radio-option-four').prop('disabled', false)
+                        $('#series-checkbox-radio-option-two').prop('disabled', false)
+                        $('#series-checkbox-radio-option-three').prop('disabled', false)
+                        $('#series-checkbox-radio-option-four').prop('disabled', false)
                     }
                     if (tier == 3 || tier == 4 || tier == 5) {
                         $('#note-tier-3').hide()
                         $('#backdrops-option-one').prop('disabled', false)
                         $('#note-tier-3-textless').hide()
-                        $('#textless-option-one').prop('disabled', false)
+                        $('#movie-textless-option-one').prop('disabled', false)
+                        $('#series-textless-option-one').prop('disabled', false)
                         $('.open-add-badges-button').attr('onclick', 'openAddBadges()');
                         $('#open-create-poster').attr('onclick', 'openCreatePoster()');
                     } else {
@@ -899,8 +938,12 @@
                             $('#backdrops-option-one').prop('checked', false)
                             shouldUpdate = true
                         }
-                        if ($('#textless-option-one').is(':checked')) {
-                            $('#textless-option-one').prop('checked', false)
+                        if ($('#movie-textless-option-one').is(':checked')) {
+                            $('#movie-textless-option-one').prop('checked', false)
+                            shouldUpdate = true
+                        }
+                        if ($('#series-textless-option-one').is(':checked')) {
+                            $('#series-textless-option-one').prop('checked', false)
                             shouldUpdate = true
                         }
                         $('.open-add-badges-button').attr('onclick', 'openTier3onlyMessage()');
@@ -908,7 +951,8 @@
                         $('#note-tier-3').show()
                         $('#backdrops-option-one').prop('disabled', true)
                         $('#note-tier-3-textless').show()
-                        $('#textless-option-one').prop('disabled', true)
+                        $('#movie-textless-option-one').prop('disabled', true)
+                        $('#series-textless-option-one').prop('disabled', true)
                         $('#custom-poster-allowed').hide()
                         $('#custom-poster-disallowed').show()
                     }
@@ -934,7 +978,8 @@
                 }
             }
             function updateSettings() {
-                var posterType = $('input[name=optionsRadios]:checked', '#adv-opts-form').val();
+                var moviePosterType =$('input[name=movieOptionsRadios]:checked', '#poster-type-opts-form').val();
+                var seriesPosterType =$('input[name=seriesOptionsRadios]:checked', '#poster-type-opts-form').val();
                 var overwritePeriod = $('input[name=overwriteRadios]:checked', '#overwrite-opts-form').val();
                 var overwrite = 0;
                 if ($("#overwrite-option-one").is(':checked')) {
@@ -956,12 +1001,16 @@
                 if ($("#backdrops-option-one").is(':checked')) {
                   backdrops = 1;
                 }
-                var textless = 0
-                if ($("#textless-option-one").is(':checked')) {
-                  textless = 1;
+                var movieTextless = 0
+                if ($("#movie-textless-option-one").is(':checked')) {
+                  movieTextless = 1;
+                }
+                var seriesTextless = 0
+                if ($("#series-textless-option-one").is(':checked')) {
+                  seriesTextless = 1;
                 }
                 var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
-                $.get('/setSettings?posterType=' + posterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&textless=' + textless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+                $.get('/setSettings?moviePosterType=' + moviePosterType + '&seriesPosterType=' + seriesPosterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&movieTextless=' + movieTextless + '&seriesTextless=' + seriesTextless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             var servPass = false
             function set_pass() {
@@ -1023,12 +1072,24 @@
                             if (data.backdrops) {
                                 $("#backdrops-option-one").prop('checked', true)
                             }
-                            if (data.textless) {
-                                $("#textless-option-one").prop('checked', true)
+                            if (data.movieTextless) {
+                                $("#movie-textless-option-one").prop('checked', true)
                             }
-                            if (data.posterType) {
-                                $('input[name=optionsRadios]', '#adv-opts-form').each((ij,el)=> {
-                                    if ($(el).val() == data.posterType) {
+                            if (data.seriesTextless) {
+                                $("#series-textless-option-one").prop('checked', true)
+                            }
+                            if (data.moviePosterType) {
+                                $('input[name=movieOptionsRadios]', '#poster-type-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.moviePosterType) {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
+                            if (data.seriesPosterType) {
+                                $('input[name=seriesOptionsRadios]', '#poster-type-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.seriesPosterType) {
                                         $(el).prop('checked', true)
                                     } else {
                                         $(el).prop('checked', false)
@@ -1114,6 +1175,9 @@
                     })
                     $('#adv-opts-form input').on('change', function() {
                         updateSettings();
+                    })
+                    $('#poster-type-opts-form input').on('change', function() {
+                        updateSettings();
                     });
                     $('#scan-order-opts-form input').on('change', function() {
                         updateSettings();
@@ -1136,7 +1200,10 @@
                     $("#backdrops-option-one").on('change', function() {
                         updateSettings();
                     });
-                    $("#textless-option-one").on('change', function() {
+                    $("#movie-textless-option-one").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#series-textless-option-one").on('change', function() {
                         updateSettings();
                     });
                     $("#change-api-key").click(function(e) {
@@ -1913,6 +1980,14 @@
                         $('.scan-status').text(data.scanItems ? 'Scanning (' + data.scanItems + ' items in queue)' : 'Idle, not scanning')
                     }
                 });
+            }
+
+            function openPosterSettings() {
+                $('#poster-settings').show()
+            }
+
+            function closePosterSettings() {
+                $('#poster-settings').hide()
             }
 
             function openTier3onlyMessage() {

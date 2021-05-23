@@ -35,15 +35,18 @@ let map = {
     mediaFolders: { movie: [], series: [] },
     lastFullUpdate: { movie: 0, series: 0 },
     apiKey: '',
-    posterType: 'poster-default',
     backdrops: false,
     customPosters: {},
-    textless: false,
     labels: {},
     scanOrder: 'imdb-tmdb',
     cacheMatches: true,
     pass: false,
     watchFolderDepth: 0,
+    movieTextless: false,
+    seriesTextless: false,
+    moviePosterType: 'poster-default',
+    seriesPosterType: 'poster-default',
+    updateTransitionMay: true,
 }
 
 function loadUserConfig(err, obj) {

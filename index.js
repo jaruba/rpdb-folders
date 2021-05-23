@@ -194,8 +194,8 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists, av
 	}
 }
 
-function posterFromImdbId(imdbId, folderLabel) {
-	let posterType = settings.posterType
+function posterFromImdbId(imdbId, mediaType, folderLabel) {
+	let posterType = settings[mediaType + 'PosterType']
 	if (settings.customPosters[imdbId]) {
 		let customPoster = settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
 		if (folderLabel) {
@@ -205,7 +205,7 @@ function posterFromImdbId(imdbId, folderLabel) {
 		}
 		return customPoster
 	} else {
-		if (settings.textless)
+		if (settings[mediaType + 'Textless'])
 			posterType = posterType.replace('poster-', 'textless-')
 		return 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg' + (folderLabel ? '?label=' + folderLabel : '')
 	}
@@ -295,7 +295,7 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = posterFromImdbId(imdbId, folderLabel)
+		const posterUrl = posterFromImdbId(imdbId, task.type, folderLabel)
 
 		needle.get(posterUrl, (err, res) => {
 			if (!err && (res || {}).statusCode == 200) {
@@ -684,9 +684,16 @@ app.get('/savePass', (req, res) => passwordValid(req, res, (req, res) => {
 }))
 
 app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
-	const posterType = (req.query || {}).posterType || 'poster-default'
-	settings.posterType = posterType
-	config.set('posterType', settings.posterType)
+	const moviePosterType = (req.query || {}).moviePosterType || 'poster-default'
+	if (moviePosterType != settings.moviePosterType) {
+		settings.moviePosterType = moviePosterType
+		config.set('moviePosterType', settings.moviePosterType)
+	}
+	const seriesPosterType = (req.query || {}).seriesPosterType || 'poster-default'
+	if (seriesPosterType != settings.seriesPosterType) {
+		settings.seriesPosterType = seriesPosterType
+		config.set('seriesPosterType', settings.seriesPosterType)
+	}
 	const overwritePeriod = (req.query || {}).overwritePeriod || 'overwrite-monthly'
 	settings.minOverwritePeriod = overwritePeriod == 'overwrite-monthly' ? 29 * 24 * 60 * 60 * 1000 : 14 * 24 * 60 * 60 * 1000
 	config.set('minOverwritePeriod', settings.minOverwritePeriod)
@@ -719,9 +726,18 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	const backdrops = (req.query || {}).backdrops || false
 	settings.backdrops = backdrops == 1 ? true : false
 	config.set('backdrops', settings.backdrops)
-	const textless = (req.query || {}).textless || false
-	settings.textless = textless == 1 ? true : false
-	config.set('textless', settings.textless)
+	const movieTextless = (req.query || {}).movieTextless || false
+	const valMovieTextless = movieTextless == 1 ? true : false
+	if (settings.movieTextless != valMovieTextless) {
+		settings.movieTextless = valMovieTextless
+		config.set('movieTextless', settings.movieTextless)
+	}
+	const seriesTextless = (req.query || {}).seriesTextless || false
+	const valSeriesTextless = seriesTextless == 1 ? true : false
+	if (settings.seriesTextless != valSeriesTextless) {
+		settings.seriesTextless = valSeriesTextless
+		config.set('seriesTextless', settings.seriesTextless)
+	}
 	const scanOrder = (req.query || {}).scanOrder || false
 	settings.scanOrder = scanOrder || settings.scanOrder
 	config.set('scanOrder', settings.scanOrder)
@@ -733,12 +749,10 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
 		success: true,
-		posterType: settings.posterType,
 		overwrite: settings.overwrite,
 		overwrite2years: settings.overwriteLast2Years,
 		noEmptyFolders: settings.noPostersToEmptyFolders,
 		backdrops: settings.backdrops,
-		textless: settings.textless,
 		minOverwritePeriod: settings.minOverwritePeriod,
 		movieFolders: settings.mediaFolders.movie,
 		seriesFolders: settings.mediaFolders.series,
@@ -746,6 +760,10 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		apiKeyPrefix: settings.apiKey ? settings.apiKey.substr(0, 3) : false,
 		scanOrder: settings.scanOrder,
 		cacheMatches: settings.cacheMatches,
+		movieTextless: settings.movieTextless,
+		seriesTextless: settings.seriesTextless,
+		moviePosterType: settings.moviePosterType,
+		seriesPosterType: settings.seriesPosterType,
 	})
 }))
 
@@ -1067,7 +1085,7 @@ app.get('/poster', (req, res) => passwordValid(req, res, (req, res) => {
 		return
 	}
 	function pipePoster(imdbId) {
-		const posterUrl = posterFromImdbId(imdbId)
+		const posterUrl = posterFromImdbId(imdbId, mediaType)
 		needle.get(posterUrl).pipe(res)
 	}
 	folderNameToImdb(mediaName, mediaType, imdbId => {
@@ -1332,6 +1350,33 @@ setTimeout(async () => {
 	port = await getPort({ port: config.get('port') })
 	app.listen(port, async () => {
 		settings = config.getAll()
+
+		// transition to new settings for May 2021: (should be removed later on)
+		if (settings.updateTransitionMay) {
+			settings.updateTransitionMay = false
+			if (settings.hasOwnProperty('textless')) {
+				if (settings.movieTextless != settings.textless) {
+					settings.movieTextless = settings.textless
+					config.set('movieTextless', settings.movieTextless)
+				}
+				if (settings.seriesTextless != settings.textless) {
+					settings.seriesTextless = settings.textless
+					config.set('seriesTextless', settings.seriesTextless)
+				}
+			}
+			if (settings.hasOwnProperty('posterType')) {
+				if (settings.moviePosterType != settings.posterType) {
+					settings.moviePosterType = settings.posterType
+					config.set('moviePosterType', settings.moviePosterType)
+				}
+				if (settings.seriesPosterType != settings.posterType) {
+					settings.seriesPosterType = settings.posterType
+					config.set('seriesPosterType', settings.seriesPosterType)
+				}
+			}
+			config.set('updateTransitionMay', settings.updateTransitionMay)
+		}
+
 		const httpServer = `http://127.0.0.1:${port}/`
 		console.log(`RPDB Folders running at: ${httpServer}`)
 		await startWatcher()
