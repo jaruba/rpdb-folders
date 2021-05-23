@@ -198,6 +198,8 @@
                         <br/><br/><br/>
                         <button type="button" class="pure-button" onclick="openChoosePassword()">Choose Password</button>
                         <br/><br/><br/>
+                        <span id="rpdb-folders-version" style="opacity: 0.7"></span>
+                        <br/><br/>
                     </div>
                 </form>
             </div>
@@ -1055,6 +1057,9 @@
                     $.get('/getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
                         if ((data || {}).success) {
                             // load saved data
+                            if (data.pkgVersion) {
+                                $("#rpdb-folders-version").text('RPDB Folder v' + data.pkgVersion)
+                            }
                             if (data.overwrite) {
                                 $("#overwrite-option-one").prop('checked', true)
                             }

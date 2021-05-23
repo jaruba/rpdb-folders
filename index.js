@@ -749,6 +749,7 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
 		success: true,
+		pkgVersion,
 		overwrite: settings.overwrite,
 		overwrite2years: settings.overwriteLast2Years,
 		noEmptyFolders: settings.noPostersToEmptyFolders,
