@@ -703,10 +703,6 @@
         <div id="poster-settings" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Poster Settings</h1>
             <div style="text-align: center">
-                <div id="note-tier-3-textless">
-                    <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to prefer textless posters.</i>
-                    <br/><br/><br/>
-                </div>
                 <div id="note-tier-0" style="display: none">
                     <i style="opacity: 0.7">Tier 0 API keys can only use the default poster type.</i>
                     <br/><br/><br/>
@@ -719,7 +715,7 @@
                     <b>Movie Posters</b>
                     <br/><br/><br/>
                     <label for="movie-textless-option-one" class="pure-checkbox" style="display: inline-block">
-                        <input type="checkbox" id="movie-textless-option-one" class="movieOptionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                        <input type="checkbox" id="movie-textless-option-one" class="movieOptionsCheckboxTextless" value="textless" /> Prefer Textless Posters</label>
                     <br/><br/><br/>
                     <label for="movie-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
                         <input type="radio" id="movie-checkbox-radio-option-one" name="movieOptionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
@@ -736,7 +732,7 @@
                     <b>Series Posters</b>
                     <br/><br/><br/>
                     <label for="series-textless-option-one" class="pure-checkbox" style="display: inline-block">
-                        <input type="checkbox" id="series-textless-option-one" class="seriesOptionsCheckboxTextless" value="textless" disabled="" /> Prefer Textless Posters</label>
+                        <input type="checkbox" id="series-textless-option-one" class="seriesOptionsCheckboxTextless" value="textless" /> Prefer Textless Posters</label>
                     <br/><br/><br/>
                     <label for="series-checkbox-radio-option-one" class="pure-radio" style="display: inline-block">
                         <input type="radio" id="series-checkbox-radio-option-one" name="seriesOptionsRadios" value="poster-default" checked="" /> With Ratings (default)</label>
@@ -930,29 +926,15 @@
                     if (tier == 3 || tier == 4 || tier == 5) {
                         $('#note-tier-3').hide()
                         $('#backdrops-option-one').prop('disabled', false)
-                        $('#note-tier-3-textless').hide()
-                        $('#movie-textless-option-one').prop('disabled', false)
-                        $('#series-textless-option-one').prop('disabled', false)
                         $('.open-add-badges-button').attr('onclick', 'openAddBadges()');
                     } else {
                         if ($('#backdrops-option-one').is(':checked')) {
                             $('#backdrops-option-one').prop('checked', false)
                             shouldUpdate = true
                         }
-                        if ($('#movie-textless-option-one').is(':checked')) {
-                            $('#movie-textless-option-one').prop('checked', false)
-                            shouldUpdate = true
-                        }
-                        if ($('#series-textless-option-one').is(':checked')) {
-                            $('#series-textless-option-one').prop('checked', false)
-                            shouldUpdate = true
-                        }
                         $('.open-add-badges-button').attr('onclick', 'openTier3onlyMessage()');
                         $('#note-tier-3').show()
                         $('#backdrops-option-one').prop('disabled', true)
-                        $('#note-tier-3-textless').show()
-                        $('#movie-textless-option-one').prop('disabled', true)
-                        $('#series-textless-option-one').prop('disabled', true)
                         $('#custom-poster-allowed').hide()
                         $('#custom-poster-disallowed').show()
                     }
