@@ -1151,7 +1151,7 @@ app.get('/create-preview', (req, res) => passwordValid(req, res, (req, res) => {
 		tmdbId = tmdbMatching.tmdbIdFromUrl(req.query.tmdbUrl)
 
 	extendedDataCreatePoster(imdbId, req.query.mediaType, tmdbId, tmdbType, posterImage, (imdbId, posterImage) => {
-		const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + req.query.posterType + '/custom-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
+		const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + req.query.posterType + '/create-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
 		needle.get(posterUrl).pipe(res)
 	})
 }))
@@ -1172,7 +1172,7 @@ app.get('/create-poster', (req, res) => passwordValid(req, res, (req, res) => {
 		tmdbId = tmdbMatching.tmdbIdFromUrl(req.query.tmdbUrl)
 
 	extendedDataCreatePoster(imdbId, req.query.mediaType, tmdbId, tmdbType, posterImage, async (imdbId, posterImage) => {
-		settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/' + req.query.posterType + '/custom-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
+		settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/' + req.query.posterType + '/create-poster/' + imdbId + '.jpg?ratings=' + req.query.ratings + (!req.query.img && posterImage ? '&img=' + encodeURIComponent(posterImage) : '') + (req.query.extras ? '&' + req.query.extras : '')
 		config.set('customPosters', settings.customPosters)
 		const mediaName = req.query.folder
 		const mediaType = req.query.mediaType
