@@ -801,6 +801,9 @@
                 <br/><br/>
                 <b>Other Settings</b>
                 <br/><br/>
+                <label for="no-scan-on-start" class="pure-checkbox" style="display: inline-block">
+                    <input type="checkbox" id="no-scan-on-start" class="optionsCheckbox" value="noscanonstart" /> Do not scan on app start</label>
+                <br/><br/>
                 <label for="no-empty-folders" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="no-empty-folders" class="optionsCheckbox" value="notempty" /> Skip Folders that do not Include Video Files</label>
                 <br/><br/>
@@ -974,6 +977,10 @@
                 if ($("#no-empty-folders").is(':checked')) {
                   noEmptyFolders = 1;
                 }
+                var noScanOnStart = 0
+                if ($("#no-scan-on-start").is(':checked')) {
+                  noScanOnStart = 1;
+                }
                 var cacheMatches = 0
                 if ($("#cache-matches").is(':checked')) {
                   cacheMatches = 1;
@@ -991,7 +998,7 @@
                   seriesTextless = 1;
                 }
                 var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
-                $.get('/setSettings?moviePosterType=' + moviePosterType + '&seriesPosterType=' + seriesPosterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&movieTextless=' + movieTextless + '&seriesTextless=' + seriesTextless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+                $.get('/setSettings?moviePosterType=' + moviePosterType + '&seriesPosterType=' + seriesPosterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&movieTextless=' + movieTextless + '&seriesTextless=' + seriesTextless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&noScanOnStart=' + noScanOnStart + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             var servPass = false
             function set_pass() {
@@ -1050,6 +1057,9 @@
                             }
                             if (data.noEmptyFolders) {
                                 $("#no-empty-folders").prop('checked', true)
+                            }
+                            if (data.noScanOnStart) {
+                                $("#no-scan-on-start").prop('checked', true)
                             }
                             if (!data.cacheMatches) {
                                 $("#cache-matches").prop('checked', false)
@@ -1177,6 +1187,9 @@
                         updateSettings();
                     });
                     $("#no-empty-folders").on('change', function() {
+                        updateSettings();
+                    });
+                    $("#no-scan-on-start").on('change', function() {
                         updateSettings();
                     });
                     $("#cache-matches").on('change', function() {

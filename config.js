@@ -47,6 +47,7 @@ let map = {
     moviePosterType: 'poster-default',
     seriesPosterType: 'poster-default',
     updateTransitionMay: true,
+    ignoreInitialScan: false,
 }
 
 function loadUserConfig(err, obj) {

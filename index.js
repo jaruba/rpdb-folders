@@ -448,7 +448,7 @@ nameQueue.drain(() => {
 })
 
 const isDirectoryOrVideo = (withVideos, source) => { try { return fs.lstatSync(source).isDirectory() || (withVideos && fileHelper.isVideo(source)) } catch(e) { return false } }
-const getDirectories = (source, withVideos) => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos))
+const getDirectories = (source, withVideos) => { try { fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos)) } catch(e) { return [] } }
 
 let fullScanRunning = false
 
@@ -470,6 +470,7 @@ function startWatcher() {
 		persistent: true,
 		depth: settings.watchFolderDepth || 0,
 		usePolling: isDocker(),
+		ignoreInitial: settings.ignoreInitialScan || false,
 	})
 
 	watcher.on('addDir', el => {
@@ -717,6 +718,12 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		settings.noPostersToEmptyFolders = noPostersToEmptyFolders
 		config.set('noPostersToEmptyFolders', settings.noPostersToEmptyFolders)
 	}
+	const noScanOnStart = (req.query || {}).noScanOnStart || false
+	const doNotScanOnAppStart = noScanOnStart == 1 ? true : false
+	if (doNotScanOnAppStart !== settings.ignoreInitialScan) {
+		settings.ignoreInitialScan = doNotScanOnAppStart
+		config.set('ignoreInitialScan', settings.ignoreInitialScan)
+	}
 	const shouldCacheMatches = (req.query || {}).cacheMatches || false
 	const cacheMatches = shouldCacheMatches == 1 ? true : false
 	if (cacheMatches !== settings.cacheMatches) {
@@ -753,6 +760,7 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		overwrite: settings.overwrite,
 		overwrite2years: settings.overwriteLast2Years,
 		noEmptyFolders: settings.noPostersToEmptyFolders,
+		noScanOnStart: settings.ignoreInitialScan,
 		backdrops: settings.backdrops,
 		minOverwritePeriod: settings.minOverwritePeriod,
 		movieFolders: settings.mediaFolders.movie,
