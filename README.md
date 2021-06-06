@@ -55,4 +55,5 @@ Recommended movie folder names (in order of priority):
 
 ## Screenshot
 
-![screenshot-rpdb-folders](https://user-images.githubusercontent.com/1777923/108631426-9c29a200-7472-11eb-8b0d-bce13eb5c96c.jpg)
+![rpdb-folders-screenshot](https://user-images.githubusercontent.com/1777923/120939500-09f79200-c721-11eb-8e82-3db011eb20b3.jpg)
+
