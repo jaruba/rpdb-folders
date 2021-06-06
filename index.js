@@ -204,20 +204,20 @@ function posterFromImdbId(imdbId, mediaType, folderLabel, badgeString, badgePos)
 			posterType = posterType.replace('poster-', 'textless-')
 		customPoster = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg'
 	}
-	if (folderLabel) {
+	if (settings.itemLabels[imdbId] || folderLabel) {
 		if (customPoster.includes('?')) customPoster += '&'
 		else customPoster += '?'
-		customPoster += 'label=' + folderLabel
+		customPoster += 'label=' + (settings.itemLabels[imdbId] || folderLabel)
 	}
-	if (badgeString) {
+	if (settings.itemBadges[imdbId] || badgeString) {
 		if (customPoster.includes('?')) customPoster += '&'
 		else customPoster += '?'
-		customPoster += 'badges=' + badgeString
+		customPoster += 'badges=' + (settings.itemBadges[imdbId] || badgeString)
 	}
-	if (badgePos) {
+	if (settings.itemBadgePositions[imdbId] || badgePos) {
 		if (customPoster.includes('?')) customPoster += '&'
 		else customPoster += '?'
-		customPoster += 'badgePos=' + badgePos
+		customPoster += 'badgePos=' + (settings.itemBadgePositions[imdbId] || badgePos)
 	}
 	return customPoster
 }
@@ -1432,6 +1432,52 @@ app.get('/custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
 		if (imdbId) {
 			settings.customPosters[imdbId] = 'https://api.ratingposterdb.com/[[api-key]]/imdb/[[poster-type]]/custom-poster/[[imdb-id]].jpg?img=' + encodeURIComponent(mediaCustomPoster)
 			config.set('customPosters', settings.customPosters)
+			res.setHeader('Content-Type', 'application/json')
+			const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
+			res.send(respObj)
+		} else
+			internalError()
+	})
+}))
+
+app.get('/editItemLabel', (req, res) => passwordValid(req, res, (req, res) => {
+	function internalError() {
+		res.status(500)
+		res.send('Internal Server Error')
+	}
+	const mediaName = req.query.folder
+	const mediaType = req.query.type
+	if (!mediaName || !mediaType) {
+		internalError()
+		return
+	}
+	const mediaLabel = req.query.label
+	const mediaBadges = req.query.badges
+	const mediaBadgePos = req.query.badgePos
+	if (!mediaBadges && !mediaLabel) {
+		internalError()
+		return
+	}
+	folderNameToImdb(mediaName, mediaType, async (imdbId) => {
+		if (imdbId) {
+			if (mediaLabel && mediaLabel != 'none') {
+				settings.itemLabels[imdbId] = mediaLabel
+				config.set('itemLabels', settings.itemLabels)
+			} else if (settings.itemLabels[imdbId]) {
+				delete settings.itemLabels[imdbId]
+				config.set('itemLabels', settings.itemLabels)
+			}
+			if (mediaBadges && mediaBadges != 'none') {
+				settings.itemBadges[imdbId] = mediaBadges
+				config.set('itemBadges', settings.itemBadges)
+			} else if (settings.itemBadges[imdbId]) {
+				delete settings.itemBadges[imdbId]
+				config.set('itemBadges', settings.itemBadges)
+			}
+			if (mediaBadgePos && mediaBadgePos != 'none') {
+				settings.itemBadgePositions[imdbId] = mediaBadgePos
+				config.set('itemBadges', settings.itemBadgePositions)
+			}
 			res.setHeader('Content-Type', 'application/json')
 			const respObj = await changePosterForFolder(mediaName, imdbId, mediaType)
 			res.send(respObj)
