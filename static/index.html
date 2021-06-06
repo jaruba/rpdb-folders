@@ -330,7 +330,7 @@
         <div id="folder-poster-edit" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Poster Edit</h1>
             <div style="text-align: center">
-                <img id="folder-poster-edit-img" src="" onerror="if (this.src) { this.src='/missing-poster.png' }">
+                <img id="folder-poster-edit-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='/missing-poster.png' }">
                 <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="openFixMatch()">Fix Match</button>
                 &nbsp;&nbsp;&nbsp;
@@ -742,7 +742,7 @@
         <div id="preview-create-poster" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Preview Poster</h1>
             <div style="text-align: center">
-                <img id="preview-create-poster-img" src="" onerror="if (this.src) { this.src='/missing-poster.png' }">
+                <img id="preview-create-poster-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='/missing-poster.png' }">
                 <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="closePreviewCreatePoster()">Back</button>
             </div>
