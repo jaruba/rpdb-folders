@@ -370,8 +370,17 @@ const nameQueue = async.queue((task, cb) => {
 		const checkWithin2Years = !!(!task.avoidYearMatch && task.forced && posterExists && settings.overwriteLast2Years)
 		function retrievePosters() {
 			getPoster(imdbId)
-			if (settings.backdrops)
-				getBackdrop(imdbId)
+			if (settings.backdrops) {
+				let noBackdrop = false
+
+				if (posterExists && !backdropExists)
+					noBackdrop = true
+
+				if (!noBackdrop)
+					getBackdrop(imdbId)
+				else
+					endIt()
+			}
 		}
 		function failPosters() {
 			if (checkWithin2Years)
