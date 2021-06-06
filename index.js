@@ -194,21 +194,32 @@ function folderNameToImdb(folderName, folderType, cb, isForced, posterExists, av
 	}
 }
 
-function posterFromImdbId(imdbId, mediaType, folderLabel) {
+function posterFromImdbId(imdbId, mediaType, folderLabel, badgeString, badgePos) {
 	let posterType = settings[mediaType + 'PosterType']
+	let customPoster = ''
 	if (settings.customPosters[imdbId]) {
-		let customPoster = settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
-		if (folderLabel) {
-			if (customPoster.includes('?')) customPoster += '&'
-			else customPoster += '?'
-			customPoster += 'label=' + folderLabel
-		}
-		return customPoster
+		customPoster = settings.customPosters[imdbId].replace('[[api-key]]', settings.apiKey).replace('[[poster-type]]', posterType).replace('[[imdb-id]]', imdbId)
 	} else {
 		if (settings[mediaType + 'Textless'])
 			posterType = posterType.replace('poster-', 'textless-')
-		return 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg' + (folderLabel ? '?label=' + folderLabel : '')
+		customPoster = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg'
 	}
+	if (folderLabel) {
+		if (customPoster.includes('?')) customPoster += '&'
+		else customPoster += '?'
+		customPoster += 'label=' + folderLabel
+	}
+	if (badgeString) {
+		if (customPoster.includes('?')) customPoster += '&'
+		else customPoster += '?'
+		customPoster += 'badges=' + badgeString
+	}
+	if (badgePos) {
+		if (customPoster.includes('?')) customPoster += '&'
+		else customPoster += '?'
+		customPoster += 'badgePos=' + badgePos
+	}
+	return customPoster
 }
 
 
@@ -224,6 +235,10 @@ const nameQueue = async.queue((task, cb) => {
 	const parentMediaFolder = task.isFile ? task.folder : path.resolve(task.folder, '..')
 
 	const folderLabel = settings.labels[parentMediaFolder]
+
+	const badgeString = settings.badges[parentMediaFolder]
+
+	const badgePos = settings.badgePositions[parentMediaFolder]
 
 	const posterName = task.posterName || 'poster.jpg'
 
@@ -295,7 +310,7 @@ const nameQueue = async.queue((task, cb) => {
 			endIt()
 			return
 		}
-		const posterUrl = posterFromImdbId(imdbId, task.type, folderLabel)
+		const posterUrl = posterFromImdbId(imdbId, task.type, folderLabel, badgeString, badgePos)
 
 		needle.get(posterUrl, (err, res) => {
 			if (!err && (res || {}).statusCode == 200) {
@@ -453,13 +468,9 @@ const getDirectories = (source, withVideos) => { try { return fs.readdirSync(sou
 let fullScanRunning = false
 
 function startFetchingPosters(theseFolders, type, forced, avoidYearMatch) {
-	console.log('these folders')
-	console.log(theseFolders)
 	let allFolders = []
 	theseFolders.forEach(mediaFolder => { console.log(getDirectories(mediaFolder)); allFolders = allFolders.concat(getDirectories(mediaFolder)) })
 	if (allFolders.length) {
-		console.log('all folders')
-		console.log(allFolders)
 		fullScanRunning = true
 		allFolders.forEach((el) => { if (!el) return; const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced, avoidYearMatch }) })
 	}
@@ -591,7 +602,7 @@ function removeFromWatcher(folder) {
 	}
 }
 
-function addMediaFolder(type, folder, label) {
+function addMediaFolder(type, folder, label, badges, badgePos) {
 	const idx = settings.mediaFolders[type].indexOf(folder)
 	if (idx == -1) {
 		settings.mediaFolders[type].push(folder)
@@ -599,6 +610,14 @@ function addMediaFolder(type, folder, label) {
 		if (label && label != 'none') {
 			settings.labels[folder] = label
 			config.set('labels', settings.labels)
+		}
+		if (badges && badges != 'none') {
+			settings.badges[folder] = badges
+			config.set('badges', settings.badges)
+		}
+		if (badgePos && badgePos != 'none' && badgePos != 'left') {
+			settings.badgePositions[folder] = badgePos
+			config.set('badgePositions', settings.badgePositions)
 		}
 		addToWatcher([folder])
 	}
@@ -612,6 +631,14 @@ function removeMediaFolder(type, folder) {
 		if (settings.labels[folder]) {
 			delete settings.labels[folder]
 			config.set('labels', settings.labels)
+		}
+		if (settings.badges[folder]) {
+			delete settings.badges[folder]
+			config.set('badges', settings.badges)
+		}
+		if (settings.badgePositions[folder]) {
+			delete settings.badgePositions[folder]
+			config.set('badgePositions', settings.badgePositions)
 		}
 		removeFromWatcher(folder)
 	}
@@ -813,16 +840,41 @@ app.get('/editFolderLabel', (req, res) => passwordValid(req, res, (req, res) => 
 	}
 	const folder = (req.query || {}).folder || ''
 	const label = (req.query || {}).label || ''
-	if (!folder || !label) {
+	const badges = (req.query || {}).badges || ''
+	const badgePos = (req.query || {}).badgePos || ''
+	if (!folder) {
 		internalError()
 		return
 	}
-	if (label == 'none') {
+	if (!label && !badges) {
 		internalError()
 		return
 	}
-	settings.labels[folder] = label
-	config.set('labels', settings.labels)
+	if (label == 'none' && badges == 'none') {
+		internalError()
+		return
+	}
+	if (label) {
+		settings.labels[folder] = label
+		config.set('labels', settings.labels)
+	} else if (settings.labels[folder]) {
+		delete settings.labels[folder]
+		config.set('labels', settings.labels)
+	}
+	if (badges) {
+		settings.badges[folder] = badges
+		config.set('badges', settings.badges)
+	} else if (settings.badges[folder]) {
+		delete settings.badges[folder]
+		config.set('badges', settings.badges)
+	}
+	if (badgePos && badgePos != 'none') {
+		settings.badgePositions[folder] = badgePos
+		config.set('badgePositions', settings.badgePositions)
+	} else if (settings.badgePositions[folder]) {
+		delete settings.badgePositions[folder]
+		config.set('badgePositions', settings.badgePositions)
+	}
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })
 }))
@@ -842,19 +894,19 @@ app.get('/removeSeriesFolder', (req, res) => passwordValid(req, res, (req, res) 
 	removeFolderLogic(res, 'series', (req.query || {}).folder || '')
 }))
 
-function addFolderLogic(res, type, folder, label) {
+function addFolderLogic(res, type, folder, label, badges, badgePos) {
 	if (folder)
-		addMediaFolder(type, folder, label)
+		addMediaFolder(type, folder, label, badges, badgePos)
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true })
 }
 
 app.get('/addMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
-	addFolderLogic(res, 'movie', (req.query || {}).folder || '', (req.query || {}).label || '')
+	addFolderLogic(res, 'movie', (req.query || {}).folder || '', (req.query || {}).label || '', (req.query || {}).badges || '', (req.query || {}).badgePos || '')
 }))
 
 app.get('/addSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
-	addFolderLogic(res, 'series', (req.query || {}).folder || '', (req.query || {}).label || '')
+	addFolderLogic(res, 'series', (req.query || {}).folder || '', (req.query || {}).label || '', (req.query || {}).badges || '', (req.query || {}).badgePos || '')
 }))
 
 app.get('/setApiKey', (req, res) => passwordValid(req, res, (req, res) => {
@@ -1097,7 +1149,7 @@ app.get('/searchStrings', (req, res) => passwordValid(req, res, async (req, res)
 		})
 	}
 
-	const searchStringsResp = await await searchStrings(foundSearchFolderName ? [foundSearchFolderName] : settings.mediaFolders[mediaType], mediaType)
+	const searchStringsResp = await searchStrings(foundSearchFolderName ? [foundSearchFolderName] : settings.mediaFolders[mediaType], mediaType)
 	searchStringsResp.folderChoices = (settings.mediaFolders[mediaType] || []).map(el => el.split(path.sep).pop())
 	res.setHeader('Content-Type', 'application/json')
 	res.send(searchStringsResp)	
@@ -1133,7 +1185,21 @@ app.get('/preview', (req, res) => passwordValid(req, res, (req, res) => {
 	}
 	const mediaImdb = req.query.imdb || 'tt0068646'
 	const mediaLabel = req.query.label
-	const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/poster-default/' + mediaImdb + '.jpg' + (mediaLabel ? '?label=' + mediaLabel : '')
+	const mediaBadges = req.query.badges
+	const mediaBadgePos = req.query.badgePos
+	let queryString = ''
+	if (mediaLabel) queryString = '?label=' + mediaLabel
+	if (mediaBadges) {
+		if (queryString) queryString += '&'
+		else queryString = '?'
+		queryString += 'badges=' + mediaBadges
+	}
+	if (mediaBadgePos) {
+		if (queryString) queryString += '&'
+		else queryString = '?'
+		queryString += 'badgePos=' + mediaBadgePos
+	}
+	const posterUrl = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/poster-default/' + mediaImdb + '.jpg' + queryString
 	needle.get(posterUrl).pipe(res)
 }))
 

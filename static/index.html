@@ -1381,7 +1381,7 @@
             }
             var browseMediaType = 'movie'
             function openMovieBrowser() {
-                badgeString = false
+                badgeQueryString = false
                 browseMediaType = 'movie'
                 $('#add-media-folder-title').text('Add Movie Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
@@ -1420,18 +1420,18 @@
                     })
                 }
                 if (currentFolder != 'None') {
-                    var folderLabel = badgeString || false
+                    var folderLabel = badgeQueryString || false
                     if (browseMediaType == 'movie') {
-                        $.get('/addMovieFolder?folder=' + encodeURIComponent(currentFolder) + (folderLabel ? '&label=' + encodeURIComponent(folderLabel) : '') + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addMovieFolder' + (folderLabel ? folderLabel + '&' : '?') + 'folder=' + encodeURIComponent(currentFolder) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     } else {
-                        $.get('/addSeriesFolder?folder=' + encodeURIComponent(currentFolder) + (folderLabel ? '&label=' + encodeURIComponent(folderLabel) : '') + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
+                        $.get('/addSeriesFolder' + (folderLabel ? folderLabel + '&' : '?') + 'folder=' + encodeURIComponent(currentFolder) + '&pass=' + encodeURIComponent(servPass || ''), handleAddFolderResponse)
                     }
                 } else {
                     $('#add-media-folder').hide()
                 }
             }
             function openSeriesBrowser() {
-                badgeString = false
+                badgeQueryString = false
                 browseMediaType = 'series'
                 $('#add-media-folder-title').text('Add Series Media Folder')
                 $('#folder-label').prop('selectedIndex', 0)
@@ -1940,7 +1940,7 @@
                 $('#request-count').text('')
             }
             function openAddBadges() {
-                badgeString = false
+                badgeQueryString = false
                 $('#badge-position').val($('#badge-position option:first').val())
                 $('#video-quality-badges').val($('#video-quality-badges option:first').val())
                 $('#hdr-badges').val($('#hdr-badges option:first').val())
@@ -1962,10 +1962,11 @@
 
             function openPreviewPoster() {
                 var tempBadgeString = ''
+                var queryString = ''
                 if ($('#label-text').val()) {
-                    tempBadgeString = $('#label-text').val()
+                    queryString = '?label=' + encodeURIComponent($('#label-text').val())
                 } else {
-                    var badgePosition = $('#badge-position').val()
+                    var badgePos = $('#badge-position').val()
                     var badgeData = [
                         $('#video-quality-badges').val(),
                         $('#hdr-badges').val(),
@@ -1987,11 +1988,16 @@
                     if ($('#pr-types').val() != 'none')
                         badgeData.push($('#pr-types').val())
 
-                    if (badgeData.length)
-                        tempBadgeString = badgeData.join('-') + '-badge-' + badgePosition
+                    if (badgeData.length) {
+                        tempBadgeString = badgeData.join(',')
+                        queryString = '?badges=' + encodeURIComponent(tempBadgeString)
+                        if (badgePos && badgePos != 'left')
+                            queryString += '&badgePos=' + badgePos
+                    }
+
                 }
 
-                $('#preview-poster-img').attr('src', '/preview' + (tempBadgeString.length ? '?label=' +  encodeURIComponent(tempBadgeString) + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
+                $('#preview-poster-img').attr('src', '/preview' + (queryString.length ? queryString + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
 
                 $('#preview-poster').show()
             }
@@ -2001,19 +2007,19 @@
                 $('#preview-poster').hide()
             }
 
-            var badgeString
+            var badgeQueryString
 
             function cancelAddBadges() {
-                badgeString = false
+                badgeQueryString = false
                 $('#choose-badge-settings').hide()
             }
 
             function saveAddBadges() {
                 if ($('#label-text').val()) {
-                    badgeString = $('#label-text').val()
+                    badgeQueryString = '?label=' + encodeURIComponent($('#label-text').val())
                 } else {
 
-                    var badgePosition = $('#badge-position').val()
+                    var badgePos = $('#badge-position').val()
                     var badgeData = [
                         $('#video-quality-badges').val(),
                         $('#hdr-badges').val(),
@@ -2034,13 +2040,16 @@
                     if ($('#pr-types').val() != 'none')
                         badgeData.push($('#pr-types').val())
 
-                    if (badgeData.length)
-                        badgeString = badgeData.join('-') + '-badge-' + badgePosition
+                    if (badgeData.length) {
+                        badgeQueryString = '?badges=' + encodeURIComponent(badgeData.join(','))
+                        if (badgePos && badgePos != 'left')
+                            badgeQueryString += '&badgePos=' + badgePos
+                    }
 
                 }
 
-                if ($("#edit-specific-folder").is(":visible") && specificFolder && badgeString) {
-                    $.get('/editFolderLabel?label=' + encodeURIComponent(badgeString) +'&folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {})
+                if ($("#edit-specific-folder").is(":visible") && specificFolder && badgeQueryString) {
+                    $.get('/editFolderLabel' + (badgeQueryString ? badgeQueryString + '&' : '?') + 'folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {})
                 }
 
                 $('#choose-badge-settings').hide()

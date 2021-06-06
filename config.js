@@ -38,6 +38,8 @@ let map = {
     backdrops: false,
     customPosters: {},
     labels: {},
+    badges: {},
+    badgePositions: {},
     scanOrder: 'imdb-tmdb',
     cacheMatches: true,
     pass: false,
