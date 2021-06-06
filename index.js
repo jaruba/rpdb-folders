@@ -448,16 +448,20 @@ nameQueue.drain(() => {
 })
 
 const isDirectoryOrVideo = (withVideos, source) => { try { return fs.lstatSync(source).isDirectory() || (withVideos && fileHelper.isVideo(source)) } catch(e) { return false } }
-const getDirectories = (source, withVideos) => { try { fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos)) } catch(e) { return [] } }
+const getDirectories = (source, withVideos) => { try { return fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos)) } catch(e) { console.error(e); return [] } }
 
 let fullScanRunning = false
 
 function startFetchingPosters(theseFolders, type, forced, avoidYearMatch) {
+	console.log('these folders')
+	console.log(theseFolders)
 	let allFolders = []
-	theseFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
+	theseFolders.forEach(mediaFolder => { console.log(getDirectories(mediaFolder)); allFolders = allFolders.concat(getDirectories(mediaFolder)) })
 	if (allFolders.length) {
+		console.log('all folders')
+		console.log(allFolders)
 		fullScanRunning = true
-		allFolders.forEach((el) => { const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced, avoidYearMatch }) })
+		allFolders.forEach((el) => { if (!el) return; const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced, avoidYearMatch }) })
 	}
 }
 
@@ -469,7 +473,8 @@ function startWatcher() {
 		ignored: /(^|[\/\\])\../, // ignore dotfiles
 		persistent: true,
 		depth: settings.watchFolderDepth || 0,
-		usePolling: isDocker(),
+		usePolling: settings.usePolling || false,
+		interval: settings.pollingInterval || 100,
 		ignoreInitial: settings.ignoreInitialScan || false,
 	})
 
@@ -501,6 +506,8 @@ function startWatcher() {
 		}
 		const folderPart = el.replace(parentFolder + path.sep, '')
 		const name = el.split(path.sep).pop()
+		if (name.toLowerCase() == 'new folder')
+			return
 		console.log(`Directory ${name} has been added to ${type}`)
 		nameQueue.push({ name, folder: el, type, forced: false }) 
 	})
@@ -745,6 +752,18 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		settings.seriesTextless = valSeriesTextless
 		config.set('seriesTextless', settings.seriesTextless)
 	}
+	const usePolling = (req.query || {}).usePolling || false
+	const valUsePolling = usePolling == 1 ? true : false
+	if (settings.usePolling != valUsePolling) {
+		settings.usePolling = valUsePolling
+		config.set('usePolling', settings.usePolling)
+	}
+	const pollingInterval = (req.query || {}).pollingInterval || '100'
+	const valPollingInterval = parseInt(pollingInterval)
+	if (settings.pollingInterval != valPollingInterval) {
+		settings.pollingInterval = valPollingInterval
+		config.set('pollingInterval', settings.pollingInterval)
+	}
 	const scanOrder = (req.query || {}).scanOrder || false
 	settings.scanOrder = scanOrder || settings.scanOrder
 	config.set('scanOrder', settings.scanOrder)
@@ -773,6 +792,8 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		seriesTextless: settings.seriesTextless,
 		moviePosterType: settings.moviePosterType,
 		seriesPosterType: settings.seriesPosterType,
+		usePolling: settings.usePolling ? 'polling' : 'fsevents',
+		pollingInterval: settings.pollingInterval,
 	})
 }))
 

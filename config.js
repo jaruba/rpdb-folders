@@ -48,6 +48,8 @@ let map = {
     seriesPosterType: 'poster-default',
     updateTransitionMay: true,
     ignoreInitialScan: false,
+    usePolling: isDocker() ? true : false,
+    pollingInterval: 100,
 }
 
 function loadUserConfig(err, obj) {

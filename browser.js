@@ -11,7 +11,7 @@ const fs = require('fs')
 const path = require('path')
 
 const isDirectoryOrVideo = (withVideos, source) => { try { return fs.lstatSync(source).isDirectory() || (withVideos && fileHelper.isVideo(source)) } catch(e) { return false } }
-const getDirectories = (source, withVideos) => { try { fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos)) } catch(e) { return [] } }
+const getDirectories = (source, withVideos) => { try { return fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectoryOrVideo.bind(null, withVideos)) } catch(e) { return [] } }
 
 const winNetDrive = require('windows-network-drive')
 

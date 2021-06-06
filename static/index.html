@@ -165,7 +165,9 @@
                 <form class="pure-form pure-form-aligned" id="adv-opts-form">
                     <div id="adv-form">
                         <button type="button" class="pure-button" onclick="openPosterSettings()">Poster Settings</button>
-                        <br/><br/>
+                        &nbsp;&nbsp;&nbsp;
+                        <button type="button" class="pure-button" onclick="openScanSettings()">Scan Settings</button>
+                        <br/><br/><br/>
                         <b>Backdrops</b><br/><br/>
                         <div id="note-tier-3">
                             <i style="opacity: 0.7">Tier 3 (or higher) API keys are required to download backdrops.</i>
@@ -193,8 +195,6 @@
                         <button type="button" class="pure-button" onclick="openPosterEdit('series')">Edit Series Poster</button>
                         <br/><br/><br/>
                         <button type="button" class="pure-button" onclick="openCheckRequests()">Check Requests</button>
-                        <br/><br/><br/>
-                        <button type="button" class="pure-button" onclick="openScanSettings()">Scan Settings</button>
                         <br/><br/><br/>
                         <button type="button" class="pure-button" onclick="openChoosePassword()">Choose Password</button>
                         <br/><br/><br/>
@@ -753,9 +753,33 @@
             <h1 class="dialog-title">Scan Settings</h1>
             <div style="text-align: center">
                 <div style="display: inline-block; opacity: 0.85; width: 570px; max-width: 80%; line-height: 26px">
-                    With the exception of "overwrite images", all other settings are for advanced users and should not be used without proper understanding of their implications.
+                    All setting descriptions should be read carefully.
                 </div>
                 <br/><br/><br/>
+                <b>Scanner Status</b>
+                <br/><br/>
+                <div class="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
+                <br/><br/>
+                <button type="button" class="pure-button" onclick="cancelScan()">Cancel Scan</button>
+                <br/><br/><br/><br/>
+                <b>Manual Scan Options</b>
+                <br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Scans are done periodically by default, by runing a full scan you initiate a scan manually.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="runFullScan()">Run Full Scan</button>
+                <br/><br/>
+                <div id="full-scan-msg" style="opacity: 0.7">Last full scan started: never</div>
+                <br/><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Forcing an overwrite will update all posters, refresh all ratings and apply new settings.</i>
+                    <br/><br/>
+                    <i style="opacity: 0.7"><b>Warning:</b> Forcing an overwrite scan may deplete all available requests for this month.</i>
+                    <br/><br/>
+                </div>
+                <button type="button" class="pure-button" onclick="forceOverwriteScan()">Force Overwrite Scan</button>
+                <br/><br/><br/><br/>
                 <b>Overwrite Images</b><br/><br/>
                 <div>
                     <i style="opacity: 0.7">Overwriting images will keep the ratings updated, but will also use more requests.</i>
@@ -780,9 +804,60 @@
                         <input type="radio" id="checkbox-radio-overwrite-two" name="overwriteRadios" value="overwrite-bimonthly" /> Bimonthly</label>
                 </form>
                 <br/><br/>
-                <b>Scan Order</b><br/><br/>
+                <b>Scan Type</b><br/><br/>
                 <div>
-                    <i style="opacity: 0.7">Which internal scanners should be used and in which order.</i>
+                    <i style="opacity: 0.7">"Polling" should be used when network folders are used.</i>
+                    <br/><br/>
+                    <i style="opacity: 0.7"><b>Important:</b> Changing this setting requires restarting the app.</i>
+                    <br/><br/>
+                </div>
+                <form class="pure-form pure-form-aligned" id="scan-type-opts-form">
+                    <label for="checkbox-radio-scan-type-one" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-type-one" name="scanTypeRadios" value="fsevents" checked="" /> FS Events</label>
+                    &nbsp;&nbsp;
+                    <label for="checkbox-radio-scan-type-two" class="pure-radio" style="display: inline-block">
+                        <input type="radio" id="checkbox-radio-scan-type-two" name="scanTypeRadios" value="polling" /> Polling</label>
+                </form>
+                <br/><br/>
+                <b>Polling Interval</b><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Only used when the "Polling" scan type is selected.</i>
+                    <br/><br/>
+                    <i style="opacity: 0.7"><b>Important:</b> Changing this setting requires restarting the app.</i>
+                    <br/><br/>
+                    <form class="pure-form pure-form-aligned" id="scan-interval-opts-form">
+                        <label for="checkbox-radio-scan-interval-one" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-one" name="scanIntervalRadios" value="100" checked="" /> 100ms</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-two" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-two" name="scanIntervalRadios" value="500" /> 500ms</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-three" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-three" name="scanIntervalRadios" value="1000" /> 1s</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-four" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-four" name="scanIntervalRadios" value="3000" /> 3s</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-five" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-five" name="scanIntervalRadios" value="5000" /> 5s</label>
+                        <br/><br/>
+                        <label for="checkbox-radio-scan-interval-six" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-six" name="scanIntervalRadios" value="7000" /> 7s</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-seven" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-seven" name="scanIntervalRadios" value="10000" /> 10s</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-eight" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-eight" name="scanIntervalRadios" value="15000" /> 15s</label>
+                        &nbsp;&nbsp;
+                        <label for="checkbox-radio-scan-interval-nine" class="pure-radio" style="display: inline-block">
+                            <input type="radio" id="checkbox-radio-scan-interval-nine" name="scanIntervalRadios" value="20000" /> 20s</label>
+                    </form>
+                </div>
+                <br/><br/>
+                <b>Matching Order</b><br/><br/>
+                <div>
+                    <i style="opacity: 0.7">Which internal matchers should be used and in which order.</i>
                     <br/><br/>
                 </div>
                 <form class="pure-form pure-form-aligned" id="scan-order-opts-form">
@@ -809,30 +884,6 @@
                 <br/><br/>
                 <label for="cache-matches" class="pure-checkbox" style="display: inline-block">
                     <input type="checkbox" id="cache-matches" class="optionsCheckbox" value="cachedmatch" checked="" /> Cache Previous Successful Matches</label>
-                <br/><br/><br/><br/>
-                <b>Scanner Status</b>
-                <br/><br/>
-                <div class="scan-status" style="padding: 10px; border: 1px solid rgba(0,0,0,0.3); display: inline-block">Idle, not scanning</div>
-                <br/><br/>
-                <button type="button" class="pure-button" onclick="cancelScan()">Cancel Scan</button>
-                <br/><br/><br/><br/>
-                <b>Manual Scan Options</b>
-                <br/><br/>
-                <div>
-                    <i style="opacity: 0.7">Scans are done periodically by default, by runing a full scan you initiate a scan manually.</i>
-                    <br/><br/>
-                </div>
-                <button type="button" class="pure-button" onclick="runFullScan()">Run Full Scan</button>
-                <br/><br/>
-                <div id="full-scan-msg" style="opacity: 0.7">Last full scan started: never</div>
-                <br/><br/><br/>
-                <div>
-                    <i style="opacity: 0.7">Forcing an overwrite will update all posters, refresh all ratings and apply new settings.</i>
-                    <br/><br/>
-                    <i style="opacity: 0.7"><b>Warning:</b> Forcing an overwrite scan may deplete all available requests for this month.</i>
-                    <br/><br/>
-                </div>
-                <button type="button" class="pure-button" onclick="forceOverwriteScan()">Force Overwrite Scan</button>
                 <br/><br/><br/><br/>
                 <button type="button" class="pure-button pure-button-primary" onclick="closeScanSettings()">Save &amp; Close</button>
                 <br/><br/><br/>
@@ -998,7 +1049,9 @@
                   seriesTextless = 1;
                 }
                 var scanOrder = $('input[name=scanOrderRadios]:checked', '#scan-order-opts-form').val();
-                $.get('/setSettings?moviePosterType=' + moviePosterType + '&seriesPosterType=' + seriesPosterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&movieTextless=' + movieTextless + '&seriesTextless=' + seriesTextless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&noScanOnStart=' + noScanOnStart + '&scanOrder=' + scanOrder + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
+                var usePolling = $('input[name=scanTypeRadios]:checked', '#scan-type-opts-form').val() == 'polling' ? '1' : '0';
+                var pollingInterval = $('input[name=scanIntervalRadios]:checked', '#scan-interval-opts-form').val();
+                $.get('/setSettings?moviePosterType=' + moviePosterType + '&seriesPosterType=' + seriesPosterType + '&overwrite=' + overwrite + '&backdrops=' + backdrops + '&movieTextless=' + movieTextless + '&seriesTextless=' + seriesTextless + '&overwritePeriod=' + overwritePeriod + '&overwrite2years=' + overwrite2years + '&noEmptyFolders=' + noEmptyFolders + '&noScanOnStart=' + noScanOnStart + '&scanOrder=' + scanOrder + '&usePolling=' + usePolling + '&pollingInterval=' + pollingInterval + '&cacheMatches=' + cacheMatches + '&pass=' + encodeURIComponent(servPass || ''), function(data) {});
             }
             var servPass = false
             function set_pass() {
@@ -1115,6 +1168,24 @@
                                     }
                                 })
                             }
+                            if (data.usePolling) {
+                                $('input[name=scanTypeRadios]', '#scan-type-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.usePolling) {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
+                            if (data.pollingInterval) {
+                                $('input[name=scanIntervalRadios]', '#scan-interval-opts-form').each((ij,el)=> {
+                                    if ($(el).val() == data.pollingInterval + '') {
+                                        $(el).prop('checked', true)
+                                    } else {
+                                        $(el).prop('checked', false)
+                                    }
+                                })
+                            }
                             $('#history-msg').text('Added images to ' + data.historyCount + ' folders.')
                             $('#watched-folders').text('Watching ' + (data.movieFolders || []).length + ' movie folders and ' + (data.seriesFolders || []).length + ' series folders.')
                             if (data.apiKeyPrefix) {
@@ -1175,6 +1246,12 @@
                         updateSettings();
                     });
                     $('#scan-order-opts-form input').on('change', function() {
+                        updateSettings();
+                    });
+                    $('#scan-type-opts-form input').on('change', function() {
+                        updateSettings();
+                    });
+                    $('#scan-interval-opts-form input').on('change', function() {
                         updateSettings();
                     });
                     $('#overwrite-opts-form input').on('change', function() {
