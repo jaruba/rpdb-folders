@@ -368,18 +368,28 @@ const nameQueue = async.queue((task, cb) => {
 
 	function getImages(imdbId) {
 		const checkWithin2Years = !!(!task.avoidYearMatch && task.forced && posterExists && settings.overwriteLast2Years)
+		const currentYear = new Date().getFullYear()
 		function retrievePosters() {
 			getPoster(imdbId)
 			if (settings.backdrops) {
-				let noBackdrop = false
-
-				if (posterExists && !backdropExists)
-					noBackdrop = true
-
-				if (!noBackdrop)
+				if (avoidOptimizedBackdropsScan) {
 					getBackdrop(imdbId)
-				else
-					endIt()
+				} else {
+					let noBackdrop = false
+
+					if (posterExists && !backdropExists)
+						noBackdrop = true
+
+					// allow checking for backdrop rarely (1/2 times) on the off chance that it received one
+					// this is to reduce hitting request usage as there is a very low chance for a backdrop to be available after the first scan
+					if (noBackdrop && idToYearCache[imdbId] && idToYearCache[imdbId] == currentYear && Math.floor(Math.random() * 2))
+						noBackdrop = false
+
+					if (!noBackdrop)
+						getBackdrop(imdbId)
+					else
+						endIt()
+				}
 			}
 		}
 		function failPosters() {
@@ -395,7 +405,6 @@ const nameQueue = async.queue((task, cb) => {
 			if (!checkWithin2Years) {
 				retrievePosters()
 			} else {
-				const currentYear = new Date().getFullYear()
 				if (idToYearCache[imdbId]) {
 					if (within2Years(idToYearCache[imdbId], currentYear))
 						retrievePosters()
@@ -469,6 +478,7 @@ nameQueue.drain(() => {
 	config.set('imdbCache', settings.imdbCache)
 	fullScanRunning = false
 	queueDisabled = false
+	avoidOptimizedBackdropsScan = false
 })
 
 const isDirectoryOrVideo = (withVideos, source) => { try { return fs.lstatSync(source).isDirectory() || (withVideos && fileHelper.isVideo(source)) } catch(e) { return false } }
@@ -478,7 +488,7 @@ let fullScanRunning = false
 
 function startFetchingPosters(theseFolders, type, forced, avoidYearMatch) {
 	let allFolders = []
-	theseFolders.forEach(mediaFolder => { console.log(getDirectories(mediaFolder)); allFolders = allFolders.concat(getDirectories(mediaFolder)) })
+	theseFolders.forEach(mediaFolder => { allFolders = allFolders.concat(getDirectories(mediaFolder)) })
 	if (allFolders.length) {
 		fullScanRunning = true
 		allFolders.forEach((el) => { if (!el) return; const name = el.split(path.sep).pop(); nameQueue.push({ name, folder: el, type, forced, avoidYearMatch }) })
@@ -727,6 +737,8 @@ app.get('/savePass', (req, res) => passwordValid(req, res, (req, res) => {
 	res.send({ success: false })
 }))
 
+let avoidOptimizedBackdropsScan = false
+
 app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	const moviePosterType = (req.query || {}).moviePosterType || 'poster-default'
 	if (moviePosterType != settings.moviePosterType) {
@@ -774,8 +786,13 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		config.set('cacheMatches', settings.cacheMatches)
 	}
 	const backdrops = (req.query || {}).backdrops || false
-	settings.backdrops = backdrops == 1 ? true : false
-	config.set('backdrops', settings.backdrops)
+	const valBackdrops = backdrops == 1 ? true : false
+	if (settings.backdrops != valBackdrops) {
+		settings.backdrops = valBackdrops
+		if (settings.backdrops)
+			avoidOptimizedBackdropsScan = true
+		config.set('backdrops', settings.backdrops)
+	}
 	const movieTextless = (req.query || {}).movieTextless || false
 	const valMovieTextless = movieTextless == 1 ? true : false
 	if (settings.movieTextless != valMovieTextless) {
