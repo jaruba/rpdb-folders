@@ -463,26 +463,61 @@
                     </select>
                     <br/><br/><br/>
                     <b>Video Quality</b><br/><br/>
+                    <i style="opacity: 0.7">4K, 1080p, 720p, etc</i>
+                    <br/><br/>
                     <select id="video-quality-badges">
                         <option value="none">None</option>
                         <option value="4k">4K (Ultra HD)</option>
+                        <option value="4kupscaled">4K (Upscaled)</option>
                         <option value="1080p">1080p (Full HD)</option>
                         <option value="720p">720p (HD)</option>
                         <option value="2k">2K (Quad HD)</option>
                         <option value="5k">5K (Ultra HD)</option>
                         <option value="8k">8K (Ultra HD)</option>
+                        <option value="480p">480p (SD)</option>
+                        <option value="360p">360p (SD)</option>
+                        <option value="240p">240p (SD)</option>
                     </select>
                     <br/><br/><br/>
-                    <b>HDR</b><br/><br/>
+                    <b>Color Range</b><br/><br/>
+                    <i style="opacity: 0.7">HDR, Dolby Vision, etc</i>
+                    <br/><br/>
                     <select id="hdr-badges">
                         <option value="none">None</option>
-                        <option value="hdr">HDR (True Color)</option>
+                        <option value="hdrcolor">HDR (True Color) [colorful]</option>
+                        <option value="hdr">HDR (True Color) [silver]</option>
+                        <option value="dolbyvision">Dolby Vision</option>
                     </select>
                     <br/><br/><br/>
-                    <b>REMUX</b><br/><br/>
+                    <b>Video Source</b><br/><br/>
+                    <i style="opacity: 0.7">Remux, BluRay, DVD, Web, etc</i>
+                    <br/><br/>
                     <select id="remux-badges">
                         <option value="none">None</option>
-                        <option value="remux">REMUX (Lossless)</option>
+                        <option value="remuxgold">REMUX (Lossless) [gold]</option>
+                        <option value="remux">REMUX (Lossless) [silver]</option>
+                        <option value="bluray">BluRay (Format)</option>
+                        <option value="dvd">DVD (Format)</option>
+                        <option value="web">Web (Format)</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>Video Codec</b><br/><br/>
+                    <i style="opacity: 0.7">h264, h265, etc</i>
+                    <br/><br/>
+                    <select id="codec-badges">
+                        <option value="none">None</option>
+                        <option value="h264">h264 (AVC)</option>
+                        <option value="h265">h265 (HEVC)</option>
+                    </select>
+                    <br/><br/><br/>
+                    <b>Video Container</b><br/><br/>
+                    <i style="opacity: 0.7">mkv, mp4, avi, etc</i>
+                    <br/><br/>
+                    <select id="container-badges">
+                        <option value="none">None</option>
+                        <option value="mkv">MKV (Matroska)</option>
+                        <option value="mp4">MP4 (MPEG-4)</option>
+                        <option value="avi">AVI (A/V Interleave)</option>
                     </select>
                     <br/><br/><br/>
                     <b>Audio</b><br/><br/>
@@ -493,6 +528,7 @@
                         <option value="ddp-audio">Dolby Digital Plus</option>
                         <option value="truehd-audio">Dolby TrueHD</option>
                         <option value="lpcm-audio">Linear PCM</option>
+                        <option value="atmos-audio">Linear PCM</option>
                     </select>
                     <div id="standard-audio" style="display: none">
                         <br/>
@@ -537,6 +573,14 @@
                             <option value="pcm51surround">PCM5.1 (Surround)</option>
                             <option value="pcm71lossless">PCM7.1 (Lossless)</option>
                             <option value="pcm71surround">PCM7.1 (Surround)</option>
+                        </select>
+                    </div>
+                    <div id="atmos-audio" style="display: none">
+                        <br/>
+                        <select id="atmos-audio-badges">
+                            <option value="none">None</option>
+                            <option value="atmos3dsound">Atmos (3D Sound)</option>
+                            <option value="atmossurround">Atmos (Surround)</option>
                         </select>
                     </div>
                     <br/><br/><br/>
@@ -1202,6 +1246,8 @@
                         $('#video-quality-badges').val($('#video-quality-badges option:first').val())
                         $('#hdr-badges').val($('#hdr-badges option:first').val())
                         $('#remux-badges').val($('#remux-badges option:first').val())
+                        $('#codec-badges').val($('#codec-badges option:first').val())
+                        $('#container-badges').val($('#container-badges option:first').val())
                         $('#audio-types').val($('#audio-types option:first').val())
                         $('#pr-types').val($('#pr-types option:first').val())
                         Array.from(document.getElementById('audio-types').options).forEach(el => {
@@ -1945,6 +1991,8 @@
                 $('#video-quality-badges').val($('#video-quality-badges option:first').val())
                 $('#hdr-badges').val($('#hdr-badges option:first').val())
                 $('#remux-badges').val($('#remux-badges option:first').val())
+                $('#codec-badges').val($('#codec-badges option:first').val())
+                $('#container-badges').val($('#container-badges option:first').val())
                 $('#audio-types').val($('#audio-types option:first').val())
                 $('#pr-types').val($('#pr-types option:first').val())
                 Array.from(document.getElementById('audio-types').options).forEach(el => {
@@ -1971,6 +2019,8 @@
                         $('#video-quality-badges').val(),
                         $('#hdr-badges').val(),
                         $('#remux-badges').val(),
+                        $('#codec-badges').val(),
+                        $('#container-badges').val(),
                     ].filter(function(el) { return el !== 'none' })
 
                     var audioBadge = false
@@ -2024,6 +2074,8 @@
                         $('#video-quality-badges').val(),
                         $('#hdr-badges').val(),
                         $('#remux-badges').val(),
+                        $('#codec-badges').val(),
+                        $('#container-badges').val(),
                     ].filter(function(el) { return el !== 'none' })
                     var audioBadge = false
                     Array.from(document.getElementById('audio-types').options).forEach(el => {
