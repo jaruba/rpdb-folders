@@ -55,6 +55,7 @@ let map = {
     ignoreInitialScan: false,
     usePolling: isDocker() ? true : false,
     pollingInterval: 100,
+    posterLang: { movie: 'en', series: 'en' },
 }
 
 function loadUserConfig(err, obj) {

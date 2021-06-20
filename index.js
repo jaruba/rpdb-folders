@@ -203,6 +203,11 @@ function posterFromImdbId(imdbId, mediaType, folderLabel, badgeString, badgePos)
 		if (settings[mediaType + 'Textless'])
 			posterType = posterType.replace('poster-', 'textless-')
 		customPoster = 'https://api.ratingposterdb.com/' + settings.apiKey + '/imdb/' + posterType + '/' + imdbId + '.jpg'
+		if (settings.posterLang[mediaType] != 'en') {
+			if (customPoster.includes('?')) customPoster += '&'
+			else customPoster += '?'
+			customPoster += 'lang=' + settings.posterLang[mediaType]
+		}
 	}
 	if (settings.itemLabels[imdbId] || folderLabel) {
 		if (customPoster.includes('?')) customPoster += '&'
@@ -750,6 +755,12 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		settings.seriesPosterType = seriesPosterType
 		config.set('seriesPosterType', settings.seriesPosterType)
 	}
+	const moviePosterLang = (req.query || {}).moviePosterLang || 'en'
+	const seriesPosterLang = (req.query || {}).seriesPosterLang || 'en'
+	if (JSON.stringify(settings.posterLang) != JSON.stringify({ movie: moviePosterLang, series: seriesPosterLang })) {
+		settings.posterLang = { movie: moviePosterLang, series: seriesPosterLang }
+		config.set('posterLang', settings.posterLang)
+	}
 	const overwritePeriod = (req.query || {}).overwritePeriod || 'overwrite-monthly'
 	settings.minOverwritePeriod = overwritePeriod == 'overwrite-monthly' ? 29 * 24 * 60 * 60 * 1000 : 14 * 24 * 60 * 60 * 1000
 	config.set('minOverwritePeriod', settings.minOverwritePeriod)
@@ -847,6 +858,8 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 		seriesPosterType: settings.seriesPosterType,
 		usePolling: settings.usePolling ? 'polling' : 'fsevents',
 		pollingInterval: settings.pollingInterval,
+		moviePosterLang: settings.posterLang.movie,
+		seriesPosterLang: settings.posterLang.series,
 	})
 }))
 
