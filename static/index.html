@@ -483,6 +483,12 @@
                         <option value="240p">240p (SD)</option>
                     </select>
                     <br/><br/><br/>
+                    <b>3D Video Badge</b><br/><br/>
+                    <select id="3d-badges">
+                        <option value="none">None</option>
+                        <option value="3d">3D (Stereoscopic)</option>
+                    </select>
+                    <br/><br/><br/>
                     <b>Color Range</b><br/><br/>
                     <i style="opacity: 0.7">HDR, Dolby Vision, etc</i>
                     <br/><br/>
@@ -2020,6 +2026,7 @@
                     $('#badge-or-label').on('change', function() {
                         $('#badge-position').val($('#badge-position option:first').val())
                         $('#video-quality-badges').val($('#video-quality-badges option:first').val())
+                        $('#3d-badges').val($('#3d-badges option:first').val())
                         $('#hdr-badges').val($('#hdr-badges option:first').val())
                         $('#remux-badges').val($('#remux-badges option:first').val())
                         $('#codec-badges').val($('#codec-badges option:first').val())
@@ -2772,6 +2779,7 @@
                 badgeQueryString = false
                 $('#badge-position').val($('#badge-position option:first').val())
                 $('#video-quality-badges').val($('#video-quality-badges option:first').val())
+                $('#3d-badges').val($('#3d-badges option:first').val())
                 $('#hdr-badges').val($('#hdr-badges option:first').val())
                 $('#remux-badges').val($('#remux-badges option:first').val())
                 $('#codec-badges').val($('#codec-badges option:first').val())
@@ -2800,6 +2808,7 @@
                     var badgePos = $('#badge-position').val()
                     var badgeData = [
                         $('#video-quality-badges').val(),
+                        $('#3d-badges').val(),
                         $('#hdr-badges').val(),
                         $('#remux-badges').val(),
                         $('#codec-badges').val(),
@@ -2855,6 +2864,7 @@
                     var badgePos = $('#badge-position').val()
                     var badgeData = [
                         $('#video-quality-badges').val(),
+                        $('#3d-badges').val(),
                         $('#hdr-badges').val(),
                         $('#remux-badges').val(),
                         $('#codec-badges').val(),
