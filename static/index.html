@@ -190,9 +190,9 @@
                         <b>History</b><br/><br/>
                         <div id="history-msg" style="opacity: 0.7">Added images to 0 folders.</div>
                         <br/>
-                        <button type="button" class="pure-button" onclick="openPosterEdit('movie')">Edit Movie Poster</button>
+                        <button type="button" class="pure-button" onclick="openChooseFolderTypes('movie')">Edit Movie Poster</button>
                         &nbsp;&nbsp;&nbsp;
-                        <button type="button" class="pure-button" onclick="openPosterEdit('series')">Edit Series Poster</button>
+                        <button type="button" class="pure-button" onclick="openChooseFolderTypes('series')">Edit Series Poster</button>
                         <br/><br/><br/>
                         <button type="button" class="pure-button" onclick="openCheckRequests()">Check Requests</button>
                         <br/><br/><br/>
@@ -332,7 +332,7 @@
             <div style="text-align: center">
                 <img id="folder-poster-edit-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='/missing-poster.png' }">
                 <br/><br/><br/>
-                <button type="button" class="pure-button" onclick="openFixMatch()">Fix Match</button>
+                <button type="button" class="fix-match-button pure-button" onclick="openFixMatch()">Fix Match</button>
                 &nbsp;&nbsp;&nbsp;
                 <button type="button" class="pure-button" onclick="openChoosePoster()">Choose Poster</button>
                 &nbsp;&nbsp;&nbsp;
@@ -398,7 +398,7 @@
             <div style="text-align: center">
                 <button type="button" class="pure-button" onclick="closeFixMediaFolder()">Close</button>
                 <br/><br/><br/><br/>
-                <form class="pure-form pure-form-aligned" id="fix-match-form">
+                <form class="pure-form pure-form-aligned" id="fix-match-form" onsubmit="return addFixMatch()">
                     <input type="text" id="imdb-url" placeholder="IMDB URL or IMDB ID" />
                 </form>
                 <br/>
@@ -406,6 +406,33 @@
                 <br/><br/><br/>
                 <div class="fix-error-message" style="display: none; color: red"></div>
                 <br/><br/>
+            </div>
+        </div>
+        <div id="choose-folder-by-imdb" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">Choose Folder by IMDB ID</h1>
+            <div style="text-align: center">
+                <button type="button" class="pure-button" onclick="closeChooseFolderByImdb()">Close</button>
+                <br/><br/><br/><br/>
+                <form class="pure-form pure-form-aligned" id="choose-imdb-match-form" onsubmit="return editPosterByImdb()">
+                    <input type="text" id="choose-imdb-url" placeholder="IMDB URL or IMDB ID" />
+                </form>
+                <br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="editPosterByImdb()">Edit Poster</button>
+                <br/><br/><br/>
+                <div class="choose-imdb-error-message" style="display: none; color: red"></div>
+                <br/><br/>
+            </div>
+        </div>
+        <div id="choose-folder-types" class="full-page-dialog" style="display: none">
+            <h1 class="dialog-title">How would you like to select the folder to edit?</h1>
+            <div style="text-align: center">
+                <br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="openSearchFolderEdit()">Search for Folder Name</button>
+                <br/><br/><br/>
+                <button type="button" class="pure-button pure-button-primary" onclick="openChooseFolderByImdb()">By IMDB URL or ID</button>
+                <br/><br/><br/>
+                <button type="button" class="pure-button" onclick="closeChooseFolderTypes()">Close</button>
+                <br/><br/><br/>
             </div>
         </div>
         <div id="choose-password" class="full-page-dialog" style="display: none">
@@ -2570,6 +2597,7 @@
             function openFixMatch() {
                 $('#fix-media-match').find('h1.dialog-title').text('Fix Match for ' + searchFolderName)
                 $('#fix-media-match').show()
+                $('#imdb-url').select()
             }
             function closeFixMediaFolder() {
                 $('.fix-error-message').hide()
@@ -2582,6 +2610,33 @@
             }
             function capitalizeFirstLetter(string) {
               return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            function openChooseFolderTypes(type) {
+                searchFolderType = type
+                $('#choose-folder-types').show()
+            }
+            function closeChooseFolderTypes() {
+                $('#choose-folder-types').hide()
+            }
+            function openSearchFolderEdit() {
+                console.log('type: ' + searchFolderType)
+                openPosterEdit(searchFolderType)
+                setTimeout(function() { closeChooseFolderTypes() })
+            }
+            function openChooseFolderByImdb() {
+                $('#choose-imdb-url').val('')
+                $('.choose-imdb-error-message').text('')
+                $('.choose-imdb-error-message').hide()
+                $('#choose-folder-by-imdb').find('h1.dialog-title').text('Choose ' + capitalizeFirstLetter(searchFolderType) + ' Folder by IMDB ID')
+                $('#choose-folder-by-imdb').show()
+                $('#choose-imdb-url').select()
+                closeChooseFolderTypes()
+            }
+            function closeChooseFolderByImdb() {
+                $('#choose-imdb-url').val('')
+                $('.choose-imdb-error-message').text('')
+                $('.choose-imdb-error-message').hide()
+                $('#choose-folder-by-imdb').hide()
             }
             function openPosterEdit(type, searchFolderName) {
                 searchFolderType = type
@@ -2611,9 +2666,40 @@
                 searchStrings = {}
                 $('#search-folder').hide()
             }
+            var editPosterSelectType = false
+            function editPosterByImdb() {
+                editPosterSelectType = 'imdb'
+                var tempName = $('#choose-imdb-url').val()
+                if (tempName.startsWith('https://www.imdb.com/title/')) {
+                    tempName = tempName.replace('https://www.imdb.com/title/','')
+                    if (tempName.startsWith('tt') && tempName.includes('/')) {
+                        tempName = tempName.substr(0, tempName.indexOf('/'))
+                    }
+                }
+                if (tempName.startsWith('tt') && !isNaN(tempName.replace('tt',''))) {
+                    searchFolderName = tempName
+                    $('.fix-match-button').prop('disabled', true)
+                    $('#update-ratings-poster-msg').hide()
+                    $('#folder-poster-edit').find('h1.dialog-title').text(searchFolderName)
+                    $('#folder-poster-edit-img').attr('src','');
+                    setTimeout(() => {
+                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
+                    })
+                    badgeQueryString = false
+                    $('#folder-poster-edit').show()
+                    closeChooseFolderByImdb()
+                } else {
+                    $('.choose-imdb-error-message').text('Invalid IMDB URL or IMDB ID')
+                    $('.choose-imdb-error-message').show()
+                }
+                return false
+            }
             function openFolderPosterEdit(ij, srcFolderName, noReloadImg) {
+                editPosterSelectType = 'search'
                 $('#update-ratings-poster-msg').hide()
                 searchFolderName = srcFolderName || $($('.add-search-line')[ij]).text()
+                $('.fix-match-button').prop('disabled', false)
+                $('#update-ratings-poster-msg').hide()
                 $('.search-list').html('')
                 searchStrings = {}
                 $('#search-folder').hide()
@@ -2631,7 +2717,10 @@
                 $('#folder-poster-edit').hide()
             }
             function backToSearch() {
-                openPosterEdit(searchFolderType)
+                if (editPosterSelectType == 'search')
+                    openPosterEdit(searchFolderType)
+                else if (editPosterSelectType == 'imdb')
+                    openChooseFolderByImdb()
                 setTimeout(() => {
                     $('#folder-poster-edit').hide()
                 }, 100)
@@ -2652,6 +2741,7 @@
                         $('.fix-error-message').show()
                     }
                 })
+                return false
             }
             var choosePosterData = {}
             function loadPostersForLang() {

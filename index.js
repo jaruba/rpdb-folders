@@ -48,6 +48,12 @@ function saveYear(res, thisYear) {
 
 function folderNameToImdb(folderName, folderType, cb, isForced, posterExists, avoidYearMatch) {
 
+	// is it already an IMDB ID?
+	if (folderName.startsWith('tt') && !isNaN(folderName.replace('tt',''))) {
+		cb(folderName)
+		return
+	}
+
 	folderName = folderName || ''
 
 	// we skip cache to ensure item is not from last 2 years
@@ -963,6 +969,29 @@ app.get('/setApiKey', (req, res) => passwordValid(req, res, (req, res) => {
 function changePosterForFolder(folder, imdbId, type) {
 	return new Promise((resolve, reject) => {
 		if (folder && imdbId && type) {
+			if (folder == imdbId) {
+				// IMDB ID used as Folder Name
+				var foundName = false
+				Object.keys(settings.overwriteMatches[type]).some(el => {
+					if (settings.overwriteMatches[type][el] == imdbId) {
+						foundName = el
+						return true
+					}
+				})
+				if (!foundName) {
+					Object.keys(settings.imdbCache[type]).some(el => {
+						if (settings.imdbCache[type][el] == imdbId) {
+							foundName = el
+							return true
+						}
+					})
+				}
+				if (!foundName) {
+					resolve({ success: false, message: `Could not match IMDB ID to any ${type} folders` })
+					return
+				} else
+					folder = foundName
+			}
 			let mediaFolders = []
 			settings.mediaFolders[type].forEach(folders => {
 				mediaFolders = mediaFolders.concat(folders)
