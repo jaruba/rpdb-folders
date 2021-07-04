@@ -1582,8 +1582,9 @@
                     <label for="series-checkbox-radio-option-four" class="pure-radio" style="display: inline-block">
                         <input type="radio" id="series-checkbox-radio-option-four" name="seriesOptionsRadios" value="poster-mc" /> With Metacritic + Audience Ratings</label>
                 </form>
-                <br/><br/><br/><br/>
+                <br/><br/><br/>
                 <button type="button" class="pure-button pure-button-primary" onclick="closePosterSettings()">Save &amp; Close</button>
+                <br/><br/><br/>
             </div>
         </div>
         <div id="scan-settings" class="full-page-dialog" style="display: none">
@@ -2224,7 +2225,7 @@
                     }))
                     attachBrowseClickListeners()
                     $('#paste-media-folder').hide()
-                    $('#add-media-folder').show()
+                    $('#add-media-folder').show().scrollTop(0)
                 }
             }
             function attachBrowseClickListeners() {
@@ -2253,7 +2254,7 @@
                 $('#paste-media-folder-title').text('Add ' + capitalizeFirstLetter(browseMediaType) + ' Media Folder')
                 $('#paste-media-path').val('')
                 $('#add-media-folder').hide()
-                $('#paste-media-folder').show()
+                $('#paste-media-folder').show().scrollTop(0)
                 $('#paste-media-path').select()
             }
             function addPasteMediaFolder() {
@@ -2263,7 +2264,7 @@
             }
             function closePasteMediaFolder() {
                 $('#paste-media-folder').hide()
-                $('#add-media-folder').show()
+                $('#add-media-folder').show().scrollTop(0)
             }
             function updatePage() {
                 $.get('getSettings?pass=' + encodeURIComponent(servPass || ''), function(data) {
@@ -2304,7 +2305,7 @@
             }
             function openEditSpecificFolder() {
                 $('#edit-specific-folder').find('h1.dialog-title').text(specificFolder)
-                $('#edit-specific-folder').show()
+                $('#edit-specific-folder').show().scrollTop(0)
                 closeEditMediaFolder()
             }
             function closeEditSpecificFolder() {
@@ -2349,7 +2350,7 @@
                 $('#create-poster-mc-mcaudience').val('')
                 $('#create-poster-mc-mc-cert').val($('#create-poster-mc-mc-cert option:first').val())
 
-                $('#create-poster').show()
+                $('#create-poster').show().scrollTop(0)
             }
             function openPreviewCreatePoster() {
                 var imgUrl = $('#create-poster-img-url').val()
@@ -2408,7 +2409,7 @@
 
                 $('#preview-create-poster-img').attr('src', '').attr('src', '/create-preview?ratings=' + ratingString + '&posterType=' + posterType + (extras ? '&' + extras + '&extras=' + encodeURIComponent(extras) : '') + '&pass=' + encodeURIComponent(servPass || ''))
 
-                $('#preview-create-poster').show()
+                $('#preview-create-poster').show().scrollTop(0)
             }
             function saveCreatePoster() {
                 var imgUrl = $('#create-poster-img-url').val()
@@ -2585,7 +2586,7 @@
                         } else {
                             $('.edit-series-folder-list').html('<span style="opacity: 0.5">None Added</span>')
                         }
-                        $('#edit-media-folder').show()
+                        $('#edit-media-folder').show().scrollTop(0)
                         attachRemoveFolderClickListeners()
                     }
                 })
@@ -2596,7 +2597,7 @@
             }
             function openFixMatch() {
                 $('#fix-media-match').find('h1.dialog-title').text('Fix Match for ' + searchFolderName)
-                $('#fix-media-match').show()
+                $('#fix-media-match').show().scrollTop(0)
                 $('#imdb-url').select()
             }
             function closeFixMediaFolder() {
@@ -2613,7 +2614,7 @@
             }
             function openChooseFolderTypes(type) {
                 searchFolderType = type
-                $('#choose-folder-types').show()
+                $('#choose-folder-types').show().scrollTop(0)
             }
             function closeChooseFolderTypes() {
                 $('#choose-folder-types').hide()
@@ -2628,7 +2629,7 @@
                 $('.choose-imdb-error-message').text('')
                 $('.choose-imdb-error-message').hide()
                 $('#choose-folder-by-imdb').find('h1.dialog-title').text('Choose ' + capitalizeFirstLetter(searchFolderType) + ' Folder by IMDB ID')
-                $('#choose-folder-by-imdb').show()
+                $('#choose-folder-by-imdb').show().scrollTop(0)
                 $('#choose-imdb-url').select()
                 closeChooseFolderTypes()
             }
@@ -2646,7 +2647,7 @@
                         $('#choose-media-folder-type').hide()
                         $('#search-folder-input').val('')
                         $('#search-folder').find('h1.dialog-title').text('Search ' + capitalizeFirstLetter(type) + ' Folders')
-                        $('#search-folder').show()
+                        $('#search-folder').show().scrollTop(0)
                         $('.search-list').html('')
                         $('#choose-search-folder').empty()
                         $('#choose-search-folder').append(new Option('All Folders', 'all-folders'))
@@ -2686,7 +2687,7 @@
                         $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
                     })
                     badgeQueryString = false
-                    $('#folder-poster-edit').show()
+                    $('#folder-poster-edit').show().scrollTop(0)
                     closeChooseFolderByImdb()
                 } else {
                     $('.choose-imdb-error-message').text('Invalid IMDB URL or IMDB ID')
@@ -2713,7 +2714,7 @@
                     })
                 }
                 badgeQueryString = false
-                $('#folder-poster-edit').show()
+                $('#folder-poster-edit').show().scrollTop(0)
             }
             function closeFolderPosterEdit() {
                 $('#folder-poster-edit').hide()
@@ -2773,7 +2774,7 @@
             }
             function openChoosePoster() {
                 $('#choose-poster').find('h1.dialog-title').text(searchFolderName)
-                $('#choose-poster').show()
+                $('#choose-poster').show().scrollTop(0)
                 $('#folder-poster-edit').hide()
                 $.get('poster-choices?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (((data || {}).items || []).length) {
@@ -2798,7 +2799,7 @@
             function openCustomPoster() {
                 $('#custom-poster-input').val('')
                 $('#custom-poster').find('h1.dialog-title').text(searchFolderName)
-                $('#custom-poster').show()
+                $('#custom-poster').show().scrollTop(0)
                 $('#folder-poster-edit').hide()
             }
             function loadCustomPoster() {
@@ -2834,14 +2835,14 @@
                 $('#custom-poster').hide()
             }
             function openChoosePassword() {
-                $('#choose-password').show()
+                $('#choose-password').show().scrollTop(0)
             }
             function closeChoosePassword() {
                 $('#choose-password').hide()
                 $('#pass-error').hide()
             }
             function openScanSettings() {
-                $('#scan-settings').show()
+                $('#scan-settings').show().scrollTop(0)
             }
             function closeScanSettings() {
                 $('#scan-settings').hide()
@@ -2859,7 +2860,7 @@
                 $.get('checkRequests?pass=' + encodeURIComponent(servPass || ''), function(data) {
                     if (data.req && data.limit) {
                         $('#request-count').text('Requests: ' + data.req + ' / Limit: ' + data.limit)
-                        $('#check-requests').show()
+                        $('#check-requests').show().scrollTop(0)
                     }
                 })
             }
@@ -2888,7 +2889,7 @@
                 $('#badge-or-label').val($('#badge-or-label option:first').val())
                 $('#choose-label-view').hide()
                 $('#choose-badge-view').show()
-                $('#choose-badge-settings').show()
+                $('#choose-badge-settings').show().scrollTop(0)
             }
 
             function openPreviewPoster() {
@@ -2933,7 +2934,7 @@
 
                 $('#preview-poster-img').attr('src', '/preview' + (queryString.length ? queryString + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
 
-                $('#preview-poster').show()
+                $('#preview-poster').show().scrollTop(0)
             }
 
             function closePreviewPoster() {
@@ -3010,7 +3011,7 @@
             }
 
             function openPosterSettings() {
-                $('#poster-settings').show()
+                $('#poster-settings').show().scrollTop(0)
             }
 
             function closePosterSettings() {
@@ -3018,7 +3019,7 @@
             }
 
             function openTier3onlyMessage() {
-                $('#tier-3-only-message').show()
+                $('#tier-3-only-message').show().scrollTop(0)
             }
 
             function closeTier3onlyMessage() {
