@@ -56,6 +56,7 @@ let map = {
     usePolling: isDocker() ? true : false,
     pollingInterval: 100,
     posterLang: { movie: 'en', series: 'en' },
+    baseUrl: '/',
 }
 
 function loadUserConfig(err, obj) {

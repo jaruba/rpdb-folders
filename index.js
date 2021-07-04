@@ -727,17 +727,25 @@ function passwordValid(req, res, cb) {
 	cb(req, res)
 }
 
-app.get('/checkPass', (req, res) => {
+let baseUrl = config.get('baseUrl') || '/'
+
+if (!baseUrl.startsWith('/'))
+	baseUrl = '/' + baseUrl
+
+if (!baseUrl.endsWith('/'))
+	baseUrl += '/'
+
+app.get(baseUrl+'checkPass', (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: !!(settings.pass == (req.query || {}).pass) })
 })
 
-app.get('/needsPass', (req, res) => {
+app.get(baseUrl+'needsPass', (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({ success: true, required: !!settings.pass })
 })
 
-app.get('/savePass', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'savePass', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (((req || {}).query || {}).newpass) {
 		settings.pass = req.query.newpass
@@ -750,7 +758,7 @@ app.get('/savePass', (req, res) => passwordValid(req, res, (req, res) => {
 
 let avoidOptimizedBackdropsScan = false
 
-app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	const moviePosterType = (req.query || {}).moviePosterType || 'poster-default'
 	if (moviePosterType != settings.moviePosterType) {
 		settings.moviePosterType = moviePosterType
@@ -841,7 +849,7 @@ app.get('/setSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	res.send({ success: true })	
 }))
 
-app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
 		success: true,
@@ -869,7 +877,7 @@ app.get('/getSettings', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/browse', (req, res) => passwordValid(req, res, async (req, res) => {
+app.get(baseUrl+'browse', (req, res) => passwordValid(req, res, async (req, res) => {
 	const folder = (req.query || {}).folder || ''
 	res.setHeader('Content-Type', 'application/json')
 	res.send({
@@ -878,7 +886,7 @@ app.get('/browse', (req, res) => passwordValid(req, res, async (req, res) => {
 	})
 }))
 
-app.get('/editFolderLabel', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'editFolderLabel', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -931,11 +939,11 @@ function removeFolderLogic(res, type, folder) {
 	res.send({ success: true })
 }
 
-app.get('/removeMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'removeMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	removeFolderLogic(res, 'movie', (req.query || {}).folder || '')
 }))
 
-app.get('/removeSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'removeSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	removeFolderLogic(res, 'series', (req.query || {}).folder || '')
 }))
 
@@ -946,15 +954,15 @@ function addFolderLogic(res, type, folder, label, badges, badgePos) {
 	res.send({ success: true })
 }
 
-app.get('/addMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'addMovieFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	addFolderLogic(res, 'movie', (req.query || {}).folder || '', (req.query || {}).label || '', (req.query || {}).badges || '', (req.query || {}).badgePos || '')
 }))
 
-app.get('/addSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'addSeriesFolder', (req, res) => passwordValid(req, res, (req, res) => {
 	addFolderLogic(res, 'series', (req.query || {}).folder || '', (req.query || {}).label || '', (req.query || {}).badges || '', (req.query || {}).badgePos || '')
 }))
 
-app.get('/setApiKey', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'setApiKey', (req, res) => passwordValid(req, res, (req, res) => {
 	const key = (req.query || {}).key || ''
 	res.setHeader('Content-Type', 'application/json')
 	if ((key || '').length > 3) {
@@ -1032,7 +1040,7 @@ function changePosterForFolder(folder, imdbId, type) {
 	})
 }
 
-app.get('/addFixMatch', (req, res) => passwordValid(req, res, async(req, res) => {
+app.get(baseUrl+'addFixMatch', (req, res) => passwordValid(req, res, async(req, res) => {
 	const folder = (req.query || {}).folder || ''
 	const imdbPart = (req.query || {}).imdb || ''
 	const type = (req.query || {}).type || ''
@@ -1057,7 +1065,7 @@ app.get('/addFixMatch', (req, res) => passwordValid(req, res, async(req, res) =>
 
 let noSpamScan = false
 
-app.get('/runFullScan', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'runFullScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (noSpamScan) {
 		res.send({ success: false, message: `Full scan already running` })
@@ -1097,7 +1105,7 @@ app.get('/runFullScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.send({ success: false, message: `Full scan already running` })
 }))
 
-app.get('/forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (noSpamScan) {
 		res.send({ success: false, message: `Full scan already running` })
@@ -1123,14 +1131,14 @@ app.get('/forceOverwriteScan', (req, res) => passwordValid(req, res, (req, res) 
 	res.send({ success: true })
 }))
 
-app.get('/cancelScan', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'cancelScan', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	if (nameQueue.length())
 		queueDisabled = true
 	res.send({ success: true })
 }))
 
-app.get('/pollData', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'pollData', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	let lastFullUpdate = 0
 	if (settings.lastFullUpdate['movie'] > settings.lastFullUpdate['series'])
@@ -1149,7 +1157,7 @@ const semver = require('semver')
 
 const pkgVersion = require('./package.json').version
 
-app.get('/needsUpdate', (req, res) => {
+app.get(baseUrl+'needsUpdate', (req, res) => {
 
 	res.setHeader('Content-Type', 'application/json')
 
@@ -1195,7 +1203,7 @@ app.get('/needsUpdate', (req, res) => {
 	})
 })
 
-app.get('/searchStrings', (req, res) => passwordValid(req, res, async (req, res) => {
+app.get(baseUrl+'searchStrings', (req, res) => passwordValid(req, res, async (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1223,7 +1231,7 @@ app.get('/searchStrings', (req, res) => passwordValid(req, res, async (req, res)
 	res.send(searchStringsResp)	
 }))
 
-app.get('/poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1246,7 +1254,7 @@ app.get('/poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/preview', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'preview', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1299,7 +1307,7 @@ function extendedDataCreatePoster(imdbId, imdbType, tmdbId, tmdbType, posterImag
 	}
 }
 
-app.get('/create-preview', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'create-preview', (req, res) => passwordValid(req, res, (req, res) => {
 	let imdbId
 	let tmdbId
 	let posterImage
@@ -1320,7 +1328,7 @@ app.get('/create-preview', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/create-poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'create-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	let imdbId
 	let tmdbId
 	let posterImage
@@ -1346,7 +1354,7 @@ app.get('/create-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/submit-poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'submit-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	let imdbId
 	let tmdbId
 	let posterImage
@@ -1380,7 +1388,7 @@ app.get('/submit-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/checkRequests', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'checkRequests', (req, res) => passwordValid(req, res, (req, res) => {
 	res.setHeader('Content-Type', 'application/json')
 	needle.get('https://api.ratingposterdb.com/' + settings.apiKey + '/requests?break=' + Date.now(), (err, resp, body) => {
 		if ((body || {}).limit) {
@@ -1396,7 +1404,7 @@ const ISO6391 = require('iso-639-1')
 
 const tmdbKey = require('./tmdbKey').key
 
-app.get('/poster-choices', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'poster-choices', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1430,7 +1438,7 @@ app.get('/poster-choices', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/tmdb-poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'tmdb-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1454,7 +1462,7 @@ app.get('/tmdb-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/update-ratings-poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'update-ratings-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1475,7 +1483,7 @@ app.get('/update-ratings-poster', (req, res) => passwordValid(req, res, (req, re
 	})
 }))
 
-app.get('/custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1499,7 +1507,7 @@ app.get('/custom-poster', (req, res) => passwordValid(req, res, (req, res) => {
 	})
 }))
 
-app.get('/editItemLabel', (req, res) => passwordValid(req, res, (req, res) => {
+app.get(baseUrl+'editItemLabel', (req, res) => passwordValid(req, res, (req, res) => {
 	function internalError() {
 		res.status(500)
 		res.send('Internal Server Error')
@@ -1578,7 +1586,7 @@ setTimeout(async () => {
 		app.listen(port, async () => {
 			settings = config.getAll()
 
-			const httpServer = `http://127.0.0.1:${port}/`
+			const httpServer = `http://127.0.0.1:${port}${baseUrl}`
 			console.log(`RPDB Folders running at: ${httpServer}`)
 			await startWatcher()
 			if (settings.apiKey) {
