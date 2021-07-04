@@ -1559,28 +1559,81 @@ let port
 const processArgs = process.argv || []
 
 let noBrowser = false
+let remoteCommand = false
 
 processArgs.forEach(el => {
 	if (el == '--no-browser') {
 		noBrowser = true
+	} else if (el.startsWith('--remote=')) {
+		remoteCommand = el.replace('--remote=', '').replace(/['"]+/g, '')
+		const supportedCommands = ['full-scan', 'force-overwrite-scan', 'tv-scan', 'movie-scan', 'overwrite-tv-scan', 'overwrite-movie-scan']
+		if (!supportedCommands.includes(remoteCommand))
+			throw Error('Unknown remote command passed with "--remote=", supported commands are: ' + supportedCommands.join(', '))
 	}
 })
 
 setTimeout(async () => {
-	port = await getPort({ port: config.get('port') })
-	app.listen(port, async () => {
-		settings = config.getAll()
+	if (!remoteCommand) {
+		port = await getPort({ port: config.get('port') })
+		app.listen(port, async () => {
+			settings = config.getAll()
 
-		const httpServer = `http://127.0.0.1:${port}/`
-		console.log(`RPDB Folders running at: ${httpServer}`)
-		await startWatcher()
-		if (settings.apiKey) {
-			await validateApiKey()
+			const httpServer = `http://127.0.0.1:${port}/`
+			console.log(`RPDB Folders running at: ${httpServer}`)
+			await startWatcher()
+			if (settings.apiKey) {
+				await validateApiKey()
+			}
+			if (!noBrowser) {
+				try {
+					await open(httpServer)
+				} catch(e) {}
+			}
+		})
+	} else {
+		// process remote commands
+		const remotePass = config.get('pass')
+		const remoteMediaFolders = config.get('mediaFolders')
+		let remoteHost = 'http://127.0.0.1:' + config.get('port')
+		const remoteUrls = []
+		if (remoteCommand == 'full-scan') {
+			remoteUrls.push(remoteHost+'/runFullScan?pass=' + encodeURIComponent(remotePass || ''))
+		} else if (remoteCommand == 'force-overwrite-scan') {
+			remoteUrls.push(remoteHost+'/forceOverwriteScan?pass=' + encodeURIComponent(remotePass || ''))
+		} else if (remoteCommand == 'movie-scan') {
+			remoteMediaFolders.movie.forEach(specificFolder => {
+				remoteUrls.push(remoteHost+'/runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
+			})
+		} else if (remoteCommand == 'overwrite-movie-scan') {
+			remoteMediaFolders.movie.forEach(specificFolder => {
+				remoteUrls.push(remoteHost+'/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
+			})
+		} else if (remoteCommand == 'tv-scan') {
+			remoteMediaFolders.series.forEach(specificFolder => {
+				remoteUrls.push(remoteHost+'/runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
+			})
+		} else if (remoteCommand == 'overwrite-tv-scan') {
+			remoteMediaFolders.series.forEach(specificFolder => {
+				remoteUrls.push(remoteHost+'/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
+			})
 		}
-		if (!noBrowser) {
-			try {
-				await open(httpServer)
-			} catch(e) {}
-		}
-	})
+		const remoteSuccess = false
+		const remoteCommandsQueue = async.queue((task, cb) => {
+			needle.get(task.url, (err, res) => {
+				if (!err && (res || {}).statusCode == 200) {
+					remoteSuccess = true // at least one valid success
+				}
+			})
+		}, 1000)
+		remoteCommandsQueue.drain(() => {
+			if (remoteSuccess) {
+				console.log('Successfully sent remote commands')
+			} else {
+				console.log('Failed sending remote commands')
+			}
+		})
+		remoteUrls.forEach(remoteUrl => {
+			remoteCommandsQueue.push({ url: remoteUrl })
+		})
+	}
 })
