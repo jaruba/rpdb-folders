@@ -1556,6 +1556,16 @@ let settings = {}
 
 let port
 
+const processArgs = process.argv || []
+
+let noBrowser = false
+
+processArgs.forEach(el => {
+	if (el == '--no-browser') {
+		noBrowser = true
+	}
+})
+
 setTimeout(async () => {
 	port = await getPort({ port: config.get('port') })
 	app.listen(port, async () => {
@@ -1567,8 +1577,10 @@ setTimeout(async () => {
 		if (settings.apiKey) {
 			await validateApiKey()
 		}
-		try {
-			await open(httpServer)
-		} catch(e) {}
+		if (!noBrowser) {
+			try {
+				await open(httpServer)
+			} catch(e) {}
+		}
 	})
 })
