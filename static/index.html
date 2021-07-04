@@ -2695,7 +2695,9 @@
                 return false
             }
             function openFolderPosterEdit(ij, srcFolderName, noReloadImg) {
-                editPosterSelectType = 'search'
+                if (ij !== false) {
+                    editPosterSelectType = 'search'
+                }
                 $('#update-ratings-poster-msg').hide()
                 searchFolderName = srcFolderName || $($('.add-search-line')[ij]).text()
                 $('.fix-match-button').prop('disabled', false)
@@ -2942,7 +2944,6 @@
             var badgeQueryString
 
             function cancelAddBadges() {
-                badgeQueryString = false
                 $('#choose-badge-settings').hide()
             }
 
