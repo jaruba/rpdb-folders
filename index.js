@@ -1561,32 +1561,6 @@ setTimeout(async () => {
 	app.listen(port, async () => {
 		settings = config.getAll()
 
-		// transition to new settings for May 2021: (should be removed later on)
-		if (settings.updateTransitionMay) {
-			settings.updateTransitionMay = false
-			if (settings.hasOwnProperty('textless')) {
-				if (settings.movieTextless != settings.textless) {
-					settings.movieTextless = settings.textless
-					config.set('movieTextless', settings.movieTextless)
-				}
-				if (settings.seriesTextless != settings.textless) {
-					settings.seriesTextless = settings.textless
-					config.set('seriesTextless', settings.seriesTextless)
-				}
-			}
-			if (settings.hasOwnProperty('posterType')) {
-				if (settings.moviePosterType != settings.posterType) {
-					settings.moviePosterType = settings.posterType
-					config.set('moviePosterType', settings.moviePosterType)
-				}
-				if (settings.seriesPosterType != settings.posterType) {
-					settings.seriesPosterType = settings.posterType
-					config.set('seriesPosterType', settings.seriesPosterType)
-				}
-			}
-			config.set('updateTransitionMay', settings.updateTransitionMay)
-		}
-
 		const httpServer = `http://127.0.0.1:${port}/`
 		console.log(`RPDB Folders running at: ${httpServer}`)
 		await startWatcher()
