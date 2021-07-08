@@ -1521,10 +1521,6 @@ app.get(baseUrl+'editItemLabel', (req, res) => passwordValid(req, res, (req, res
 	const mediaLabel = req.query.label
 	const mediaBadges = req.query.badges
 	const mediaBadgePos = req.query.badgePos
-	if (!mediaBadges && !mediaLabel) {
-		internalError()
-		return
-	}
 	folderNameToImdb(mediaName, mediaType, async (imdbId) => {
 		if (imdbId) {
 			if (mediaLabel && mediaLabel != 'none') {

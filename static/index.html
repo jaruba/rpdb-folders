@@ -2987,9 +2987,9 @@
 
                 }
 
-                if ($("#edit-specific-folder").is(":visible") && specificFolder && badgeQueryString) {
+                if ($("#edit-specific-folder").is(":visible") && specificFolder) {
                     $.get('editFolderLabel' + (badgeQueryString ? badgeQueryString + '&' : '?') + 'folder=' + encodeURIComponent(specificFolder) + '&pass=' + encodeURIComponent(servPass || ''), function(data) {})
-                } else if ($("#folder-poster-edit").is(":visible") && searchFolderName && searchFolderType && badgeQueryString) {
+                } else if ($("#folder-poster-edit").is(":visible") && searchFolderName && searchFolderType) {
                     $('#folder-poster-edit-img').attr('src','');
                     $.get('editItemLabel' + (badgeQueryString ? badgeQueryString + '&' : '?') + 'folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                         setTimeout(() => {
