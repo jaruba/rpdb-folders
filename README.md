@@ -45,9 +45,12 @@ Recommended movie folder names (in order of priority):
 - `WandaVision` (accepted, not recommended)
 - anything else (accepted, might or might not match correctly)
 
+Don't know where to start? Check out the [Quick Start Guide](https://github.com/RatingPosterDB/rpdb-folders/wiki/Quick-Start-Guide)!
+
 ## Notes
 
 - This application requires a [RPDB API Key](https://ratingposterdb.com/api-key/)
+- There is also a list of command line arguments that can be [seen here](https://github.com/RatingPosterDB/rpdb-folders/wiki/Command-Line-Arguments)
 - It is advised to use the "refresh library metadata periodically" or any similar setting in your media center application to ensure that posters that have not been loaded in due time will be added automatically later on
 - Movies and series that have less then 500 votes on IMDB will not have rating images, these items are refreshed periodically and the images will become available as soon as it passes the 500 votes threshold
 - If a movie or series has been matched wrongly (if the folder names have been made correctly this is an extremely uncommon scenario), you can use the "Fix Match" button in RPDB Folders to correctly match a folder name to either an IMDB URL or ID
