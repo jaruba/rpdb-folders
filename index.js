@@ -1625,7 +1625,7 @@ setTimeout(async () => {
 				remoteUrls.push(remoteHost+'/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
 			})
 		}
-		const remoteSuccess = false
+		let remoteSuccess = false
 		const remoteCommandsQueue = async.queue((task, cb) => {
 			needle.get(task.url, (err, res) => {
 				if (!err && (res || {}).statusCode == 200) {
