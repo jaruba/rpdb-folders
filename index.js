@@ -1558,7 +1558,10 @@ let staticPath = path.join(path.dirname(process.execPath), 'static')
 if (!fs.existsSync(staticPath))
 	staticPath = path.join(__dirname, 'static')
 
-app.use(express.static(staticPath))
+if (baseUrl !== '/')
+	app.use(baseUrl, express.static(staticPath))
+else
+	app.use(express.static(staticPath))
 
 let settings = {}
 

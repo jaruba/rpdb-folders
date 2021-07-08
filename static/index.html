@@ -331,7 +331,7 @@
         <div id="folder-poster-edit" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Poster Edit</h1>
             <div style="text-align: center">
-                <img id="folder-poster-edit-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='/missing-poster.png' }">
+                <img id="folder-poster-edit-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='missing-poster.png' }">
                 <br/><br/><br/>
                 <button type="button" class="fix-match-button pure-button" onclick="openFixMatch()">Fix Match</button>
                 &nbsp;&nbsp;&nbsp;
@@ -777,7 +777,7 @@
         <div id="preview-create-poster" class="full-page-dialog" style="display: none">
             <h1 class="dialog-title">Preview Poster</h1>
             <div style="text-align: center">
-                <img id="preview-create-poster-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='/missing-poster.png' }">
+                <img id="preview-create-poster-img" src="" onerror="if (this.src && !this.src.endsWith('/')) { this.src='missing-poster.png' }">
                 <br/><br/><br/>
                 <button type="button" class="pure-button" onclick="closePreviewCreatePoster()">Back</button>
             </div>
@@ -2686,7 +2686,7 @@
                     $('#folder-poster-edit').find('h1.dialog-title').text(searchFolderName)
                     $('#folder-poster-edit-img').attr('src','');
                     setTimeout(() => {
-                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
+                        $('#folder-poster-edit-img').attr('src', 'poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
                     })
                     badgeQueryString = false
                     $('#folder-poster-edit').show().scrollTop(0)
@@ -2712,7 +2712,7 @@
                 if (!noReloadImg) {
                     $('#folder-poster-edit-img').attr('src','');
                     setTimeout(() => {
-                        $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
+                        $('#folder-poster-edit-img').attr('src', 'poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
                     })
                 }
                 badgeQueryString = false
@@ -2934,7 +2934,7 @@
 
                 }
 
-                $('#preview-poster-img').attr('src', '/preview' + (queryString.length ? queryString + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
+                $('#preview-poster-img').attr('src', 'preview' + (queryString.length ? queryString + '&' : '?') + '&pass=' + encodeURIComponent(servPass || ''))
 
                 $('#preview-poster').show().scrollTop(0)
             }
@@ -2993,7 +2993,7 @@
                     $('#folder-poster-edit-img').attr('src','');
                     $.get('editItemLabel' + (badgeQueryString ? badgeQueryString + '&' : '?') + 'folder=' + encodeURIComponent(searchFolderName) + '&type=' + searchFolderType + '&pass=' + encodeURIComponent(servPass || ''), function(data) {
                         setTimeout(() => {
-                            $('#folder-poster-edit-img').attr('src', '/poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
+                            $('#folder-poster-edit-img').attr('src', 'poster?type=' + searchFolderType + '&name=' + encodeURIComponent(searchFolderName) + '&break=' + Date.now() + '&pass=' + encodeURIComponent(servPass || ''))
                         })
                     })
                 }
