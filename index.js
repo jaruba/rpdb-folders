@@ -1601,27 +1601,27 @@ setTimeout(async () => {
 		// process remote commands
 		const remotePass = config.get('pass')
 		const remoteMediaFolders = config.get('mediaFolders')
-		let remoteHost = 'http://127.0.0.1:' + config.get('port')
+		let remoteHost = 'http://127.0.0.1:' + config.get('port') + baseUrl
 		const remoteUrls = []
 		if (remoteCommand == 'full-scan') {
-			remoteUrls.push(remoteHost+'/runFullScan?pass=' + encodeURIComponent(remotePass || ''))
+			remoteUrls.push(remoteHost+'runFullScan?pass=' + encodeURIComponent(remotePass || ''))
 		} else if (remoteCommand == 'force-overwrite-scan') {
-			remoteUrls.push(remoteHost+'/forceOverwriteScan?pass=' + encodeURIComponent(remotePass || ''))
+			remoteUrls.push(remoteHost+'forceOverwriteScan?pass=' + encodeURIComponent(remotePass || ''))
 		} else if (remoteCommand == 'movie-scan') {
 			remoteMediaFolders.movie.forEach(specificFolder => {
-				remoteUrls.push(remoteHost+'/runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
+				remoteUrls.push(remoteHost+'runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
 			})
 		} else if (remoteCommand == 'overwrite-movie-scan') {
 			remoteMediaFolders.movie.forEach(specificFolder => {
-				remoteUrls.push(remoteHost+'/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
+				remoteUrls.push(remoteHost+'forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=movie&pass=' + encodeURIComponent(remotePass || ''))
 			})
 		} else if (remoteCommand == 'tv-scan') {
 			remoteMediaFolders.series.forEach(specificFolder => {
-				remoteUrls.push(remoteHost+'/runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
+				remoteUrls.push(remoteHost+'runFullScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
 			})
 		} else if (remoteCommand == 'overwrite-tv-scan') {
 			remoteMediaFolders.series.forEach(specificFolder => {
-				remoteUrls.push(remoteHost+'/forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
+				remoteUrls.push(remoteHost+'forceOverwriteScan?folder=' + encodeURIComponent(specificFolder) + '&type=series&pass=' + encodeURIComponent(remotePass || ''))
 			})
 		}
 		let remoteSuccess = false
